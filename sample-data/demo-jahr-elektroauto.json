@@ -1,0 +1,399 @@
+{
+  "version": 1,
+  "exportedAt": "2026-04-01T12:00:00.000Z",
+  "monthlyKilometers": {
+    "2025-01": {
+      "kilometers": 1480,
+      "odometer": 12480
+    },
+    "2025-02": {
+      "kilometers": 1320,
+      "odometer": 13800
+    },
+    "2025-03": {
+      "kilometers": 1180,
+      "odometer": 14980
+    },
+    "2025-04": {
+      "kilometers": 960,
+      "odometer": 15940
+    },
+    "2025-05": {
+      "kilometers": 1100,
+      "odometer": 17040
+    },
+    "2025-06": {
+      "kilometers": 1280,
+      "odometer": 18320
+    },
+    "2025-07": {
+      "kilometers": 2260,
+      "odometer": 20580
+    },
+    "2025-08": {
+      "kilometers": 1980,
+      "odometer": 22560
+    },
+    "2025-09": {
+      "kilometers": 1140,
+      "odometer": 23700
+    },
+    "2025-10": {
+      "kilometers": 980,
+      "odometer": 24680
+    },
+    "2025-11": {
+      "kilometers": 1210,
+      "odometer": 25890
+    },
+    "2025-12": {
+      "kilometers": 1540,
+      "odometer": 27430
+    }
+  },
+  "transactions": [
+    {
+      "id": "demo_2025_01_01",
+      "date": "2025-01-04",
+      "kwh": 27.8,
+      "pricePerKwh": 0.43,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_01_02",
+      "date": "2025-01-09",
+      "kwh": 18.6,
+      "pricePerKwh": 0.52,
+      "fee": 0.99
+    },
+    {
+      "id": "demo_2025_01_03",
+      "date": "2025-01-14",
+      "kwh": 22.4,
+      "pricePerKwh": 0.47,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_01_04",
+      "date": "2025-01-20",
+      "kwh": 16.9,
+      "pricePerKwh": 0.56,
+      "fee": 1.49
+    },
+    {
+      "id": "demo_2025_01_05",
+      "date": "2025-01-26",
+      "kwh": 24.5,
+      "pricePerKwh": 0.44,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_02_01",
+      "date": "2025-02-03",
+      "kwh": 19.8,
+      "pricePerKwh": 0.51,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_02_02",
+      "date": "2025-02-08",
+      "kwh": 17.1,
+      "pricePerKwh": 0.54,
+      "fee": 0.99
+    },
+    {
+      "id": "demo_2025_02_03",
+      "date": "2025-02-12",
+      "kwh": 26.4,
+      "pricePerKwh": 0.42,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_02_04",
+      "date": "2025-02-18",
+      "kwh": 14.7,
+      "pricePerKwh": 0.58,
+      "fee": 1.49
+    },
+    {
+      "id": "demo_2025_02_05",
+      "date": "2025-02-24",
+      "kwh": 20.2,
+      "pricePerKwh": 0.46,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_03_01",
+      "date": "2025-03-05",
+      "kwh": 31.2,
+      "pricePerKwh": 0.39,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_03_02",
+      "date": "2025-03-16",
+      "kwh": 24.7,
+      "pricePerKwh": 0.41,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_03_03",
+      "date": "2025-03-28",
+      "kwh": 28.9,
+      "pricePerKwh": 0.43,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_04_01",
+      "date": "2025-04-06",
+      "kwh": 22.6,
+      "pricePerKwh": 0.38,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_04_02",
+      "date": "2025-04-19",
+      "kwh": 19.4,
+      "pricePerKwh": 0.35,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_04_03",
+      "date": "2025-04-29",
+      "kwh": 24.1,
+      "pricePerKwh": 0.39,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_05_01",
+      "date": "2025-05-03",
+      "kwh": 27.7,
+      "pricePerKwh": 0.37,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_05_02",
+      "date": "2025-05-15",
+      "kwh": 18.3,
+      "pricePerKwh": 0.44,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_05_03",
+      "date": "2025-05-31",
+      "kwh": 26.5,
+      "pricePerKwh": 0.38,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_06_01",
+      "date": "2025-06-07",
+      "kwh": 30.8,
+      "pricePerKwh": 0.40,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_06_02",
+      "date": "2025-06-18",
+      "kwh": 22.9,
+      "pricePerKwh": 0.42,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_06_03",
+      "date": "2025-06-27",
+      "kwh": 34.6,
+      "pricePerKwh": 0.39,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_07_01",
+      "date": "2025-07-03",
+      "kwh": 41.2,
+      "pricePerKwh": 0.47,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_07_02",
+      "date": "2025-07-08",
+      "kwh": 36.4,
+      "pricePerKwh": 0.71,
+      "fee": 2.99
+    },
+    {
+      "id": "demo_2025_07_03",
+      "date": "2025-07-11",
+      "kwh": 28.7,
+      "pricePerKwh": 0.79,
+      "fee": 3.99
+    },
+    {
+      "id": "demo_2025_07_04",
+      "date": "2025-07-18",
+      "kwh": 39.8,
+      "pricePerKwh": 0.68,
+      "fee": 1.99
+    },
+    {
+      "id": "demo_2025_07_05",
+      "date": "2025-07-23",
+      "kwh": 25.4,
+      "pricePerKwh": 0.74,
+      "fee": 0.99
+    },
+    {
+      "id": "demo_2025_07_06",
+      "date": "2025-07-30",
+      "kwh": 31.6,
+      "pricePerKwh": 0.45,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_08_01",
+      "date": "2025-08-02",
+      "kwh": 34.2,
+      "pricePerKwh": 0.46,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_08_02",
+      "date": "2025-08-06",
+      "kwh": 29.5,
+      "pricePerKwh": 0.73,
+      "fee": 2.49
+    },
+    {
+      "id": "demo_2025_08_03",
+      "date": "2025-08-14",
+      "kwh": 37.8,
+      "pricePerKwh": 0.69,
+      "fee": 1.99
+    },
+    {
+      "id": "demo_2025_08_04",
+      "date": "2025-08-21",
+      "kwh": 24.3,
+      "pricePerKwh": 0.52,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_08_05",
+      "date": "2025-08-29",
+      "kwh": 27.4,
+      "pricePerKwh": 0.44,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_09_01",
+      "date": "2025-09-08",
+      "kwh": 26.1,
+      "pricePerKwh": 0.39,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_09_02",
+      "date": "2025-09-20",
+      "kwh": 21.8,
+      "pricePerKwh": 0.41,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_09_03",
+      "date": "2025-09-30",
+      "kwh": 23.9,
+      "pricePerKwh": 0.40,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_10_01",
+      "date": "2025-10-06",
+      "kwh": 18.7,
+      "pricePerKwh": 0.41,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_10_02",
+      "date": "2025-10-18",
+      "kwh": 20.3,
+      "pricePerKwh": 0.43,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_10_03",
+      "date": "2025-10-29",
+      "kwh": 21.6,
+      "pricePerKwh": 0.42,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_11_01",
+      "date": "2025-11-04",
+      "kwh": 23.5,
+      "pricePerKwh": 0.45,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_11_02",
+      "date": "2025-11-11",
+      "kwh": 16.2,
+      "pricePerKwh": 0.56,
+      "fee": 1.49
+    },
+    {
+      "id": "demo_2025_11_03",
+      "date": "2025-11-19",
+      "kwh": 20.8,
+      "pricePerKwh": 0.47,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_11_04",
+      "date": "2025-11-27",
+      "kwh": 17.4,
+      "pricePerKwh": 0.55,
+      "fee": 0.99
+    },
+    {
+      "id": "demo_2025_12_01",
+      "date": "2025-12-03",
+      "kwh": 14.8,
+      "pricePerKwh": 0.58,
+      "fee": 1.49
+    },
+    {
+      "id": "demo_2025_12_02",
+      "date": "2025-12-08",
+      "kwh": 18.5,
+      "pricePerKwh": 0.53,
+      "fee": 0.99
+    },
+    {
+      "id": "demo_2025_12_03",
+      "date": "2025-12-13",
+      "kwh": 21.7,
+      "pricePerKwh": 0.46,
+      "fee": 0
+    },
+    {
+      "id": "demo_2025_12_04",
+      "date": "2025-12-18",
+      "kwh": 17.9,
+      "pricePerKwh": 0.57,
+      "fee": 1.49
+    },
+    {
+      "id": "demo_2025_12_05",
+      "date": "2025-12-22",
+      "kwh": 15.6,
+      "pricePerKwh": 0.59,
+      "fee": 0.99
+    },
+    {
+      "id": "demo_2025_12_06",
+      "date": "2025-12-29",
+      "kwh": 24.8,
+      "pricePerKwh": 0.44,
+      "fee": 0
+    }
+  ]
+}
