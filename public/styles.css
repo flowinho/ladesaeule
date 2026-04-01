@@ -365,6 +365,8 @@ select {
 
 .content {
   padding-bottom: 3rem;
+  display: grid;
+  gap: 1rem;
 }
 
 .card {
@@ -487,12 +489,10 @@ select {
 }
 
 .overview-grid {
-  margin-top: 1rem;
   grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 
 .summary-section {
-  margin-top: 1rem;
   padding: 1.1rem;
 }
 
