@@ -53,6 +53,7 @@ const monthlyKmTableBody = document.getElementById('monthlyKmTableBody');
 const transactionsTableBody = document.getElementById('transactionsTableBody');
 const monthlyKmFilter = document.getElementById('monthlyKmFilter');
 const transactionsFilter = document.getElementById('transactionsFilter');
+const summaryMetrics = document.getElementById('summaryMetrics');
 const addMonthlyKmButton = document.getElementById('addMonthlyKmButton');
 const addTransactionButton = document.getElementById('addTransactionButton');
 const installButton = document.getElementById('installButton');
@@ -315,6 +316,155 @@ function buildMonthlyStats(monthsBack) {
       return kilometers > 0 ? Number(((cost / kilometers) * 100).toFixed(2)) : null;
     })
   };
+}
+
+function getCurrentMonthKey() {
+  const currentDate = new Date();
+  return `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function averageValues(values) {
+  const validValues = values.filter((value) => Number.isFinite(value));
+
+  if (!validValues.length) {
+    return null;
+  }
+
+  const total = validValues.reduce((sum, value) => sum + value, 0);
+  return Number((total / validValues.length).toFixed(2));
+}
+
+function buildSummaryStats() {
+  const monthlyTransactionTotals = {};
+
+  state.transactions.forEach((transaction) => {
+    const month = String(transaction.date).slice(0, 7);
+
+    if (!monthlyTransactionTotals[month]) {
+      monthlyTransactionTotals[month] = { kwh: 0, cost: 0 };
+    }
+
+    monthlyTransactionTotals[month].kwh += Number(transaction.kwh) || 0;
+    monthlyTransactionTotals[month].cost += Number(transaction.totalCost) || 0;
+  });
+
+  const kilometerMonths = Object.keys(state.monthlyKm);
+  const energyMonths = Object.keys(monthlyTransactionTotals);
+  const currentMonth = getCurrentMonthKey();
+  const currentKilometers = Number(state.monthlyKm[currentMonth]) || 0;
+  const currentEnergy = monthlyTransactionTotals[currentMonth]?.kwh || 0;
+  const currentCost = monthlyTransactionTotals[currentMonth]?.cost || 0;
+  const currentCostPer100Km = currentKilometers > 0 ? Number(((currentCost / currentKilometers) * 100).toFixed(2)) : null;
+  const currentAvgCostPerKwh = currentEnergy > 0 ? Number((currentCost / currentEnergy).toFixed(3)) : null;
+  const currentConsumption = currentKilometers > 0 ? Number(((currentEnergy / currentKilometers) * 100).toFixed(2)) : null;
+
+  return [
+    {
+      key: 'energy',
+      label: 'Geladene Energie',
+      icon: 'icon-bolt',
+      average: averageValues(energyMonths.map((month) => Number(monthlyTransactionTotals[month].kwh.toFixed(2)))),
+      current: Number(currentEnergy.toFixed(2)),
+      formatter: (value) => `${decimalFormatter.format(value)} kWh`
+    },
+    {
+      key: 'kilometers',
+      label: 'Gefahrene Kilometer',
+      icon: 'icon-car',
+      average: averageValues(kilometerMonths.map((month) => Number((Number(state.monthlyKm[month]) || 0).toFixed(2)))),
+      current: Number(currentKilometers.toFixed(2)),
+      formatter: (value) => `${decimalFormatter.format(value)} km`
+    },
+    {
+      key: 'cost-per-100',
+      label: 'Kosten pro 100 km',
+      icon: 'icon-euro',
+      average: averageValues(kilometerMonths.map((month) => {
+        const kilometers = Number(state.monthlyKm[month]) || 0;
+        const monthlyCost = monthlyTransactionTotals[month]?.cost || 0;
+        return kilometers > 0 ? Number(((monthlyCost / kilometers) * 100).toFixed(2)) : null;
+      })),
+      current: currentCostPer100Km,
+      formatter: (value) => `${currencyFormatter.format(value)} / 100 km`
+    },
+    {
+      key: 'absolute-cost',
+      label: 'Absolute Kosten',
+      icon: 'icon-receipt',
+      average: averageValues(energyMonths.map((month) => Number(monthlyTransactionTotals[month].cost.toFixed(2)))),
+      current: Number(currentCost.toFixed(2)),
+      formatter: (value) => currencyFormatter.format(value)
+    },
+    {
+      key: 'avg-cost-kwh',
+      label: 'Ladekosten',
+      icon: 'icon-charging',
+      average: averageValues(energyMonths.map((month) => {
+        const energy = monthlyTransactionTotals[month]?.kwh || 0;
+        const cost = monthlyTransactionTotals[month]?.cost || 0;
+        return energy > 0 ? Number((cost / energy).toFixed(3)) : null;
+      })),
+      current: currentAvgCostPerKwh,
+      formatter: (value) => `${currencyFormatter.format(value)} / kWh`
+    },
+    {
+      key: 'consumption',
+      label: 'Verbrauch',
+      icon: 'icon-chart',
+      average: averageValues(kilometerMonths.map((month) => {
+        const kilometers = Number(state.monthlyKm[month]) || 0;
+        const energy = monthlyTransactionTotals[month]?.kwh || 0;
+        return kilometers > 0 ? Number(((energy / kilometers) * 100).toFixed(2)) : null;
+      })),
+      current: currentConsumption,
+      formatter: (value) => `${decimalFormatter.format(value)} kWh / 100 km`
+    }
+  ];
+}
+
+function getSummaryTrendClass(average, current) {
+  if (!Number.isFinite(average) || !Number.isFinite(current)) {
+    return 'summary-current summary-current--neutral';
+  }
+
+  if (current < average) {
+    return 'summary-current summary-current--friendly';
+  }
+
+  if (current > average) {
+    return 'summary-current summary-current--warning';
+  }
+
+  return 'summary-current summary-current--neutral';
+}
+
+function renderSummaryMetrics() {
+  const currentMonthLabel = formatMonthLong(getCurrentMonthKey());
+  const metrics = buildSummaryStats();
+
+  summaryMetrics.innerHTML = metrics.map((metric) => {
+    const averageValue = Number.isFinite(metric.average) ? metric.formatter(metric.average) : 'Kein Wert';
+    const currentValue = Number.isFinite(metric.current) ? metric.formatter(metric.current) : 'Kein Wert';
+
+    return `
+      <article class="summary-card">
+        <div class="summary-card-header">
+          <span class="summary-icon" aria-hidden="true">
+            <svg class="icon"><use href="/icons/material-symbols.svg#${metric.icon}"></use></svg>
+          </span>
+          <div>
+            <h3>${metric.label}</h3>
+            <p class="muted">Ø über alle Monate</p>
+          </div>
+        </div>
+        <div class="summary-average">${averageValue}</div>
+        <div class="${getSummaryTrendClass(metric.average, metric.current)}">
+          <span class="summary-current-label">${currentMonthLabel}</span>
+          <span class="summary-current-value">${currentValue}</span>
+        </div>
+      </article>
+    `;
+  }).join('');
 }
 
 function populateMonthYearSelectors(monthSelectElement, yearSelectElement) {
@@ -832,6 +982,7 @@ function init() {
   registerServiceWorker();
   populateMonthYearSelectors(editorMonthSelect, editorYearSelect);
   renderFilters();
+  renderSummaryMetrics();
   renderMonthlyKmTable();
   renderTransactionsTable();
   renderCharts();
