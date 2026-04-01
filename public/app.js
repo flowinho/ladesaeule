@@ -544,6 +544,26 @@ function getSummaryTrendClass(average, current) {
   return 'summary-current summary-current--neutral';
 }
 
+function getSummaryTrendClassForMetric(metric, average, current) {
+  if (metric.key === 'range-per-stop') {
+    if (!Number.isFinite(average) || !Number.isFinite(current)) {
+      return 'summary-current summary-current--neutral';
+    }
+
+    if (current > average) {
+      return 'summary-current summary-current--friendly';
+    }
+
+    if (current < average) {
+      return 'summary-current summary-current--warning';
+    }
+
+    return 'summary-current summary-current--neutral';
+  }
+
+  return getSummaryTrendClass(average, current);
+}
+
 function renderSummaryMetrics() {
   const currentMonthLabel = formatMonthLong(getLastMonthKey());
   const metrics = buildSummaryStats();
@@ -564,7 +584,7 @@ function renderSummaryMetrics() {
           </div>
         </div>
         <div class="summary-average">${averageValue}</div>
-        <div class="${getSummaryTrendClass(metric.average, metric.current)}">
+        <div class="${getSummaryTrendClassForMetric(metric, metric.average, metric.current)}">
           <span class="summary-current-label">${currentMonthLabel}</span>
           <span class="summary-current-value">${currentValue}</span>
         </div>
