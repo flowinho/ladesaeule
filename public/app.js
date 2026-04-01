@@ -9,7 +9,7 @@ const bootstrapState = bootstrapElement ? JSON.parse(bootstrapElement.textConten
 const state = {
   monthlyKm: bootstrapState.monthlyKilometers || {},
   transactions: bootstrapState.transactions || [],
-  range: 6,
+  range: 3,
   charts: {},
   deferredPrompt: null,
   filters: {
