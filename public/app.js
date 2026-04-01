@@ -307,6 +307,7 @@ function buildMonthRange(monthsBack) {
 function buildMonthlyStats(monthsBack) {
   const months = buildMonthRange(monthsBack);
   const transactionTotals = {};
+  const currentMonth = buildMonthRange(1)[0];
 
   state.transactions.forEach((transaction) => {
     const month = String(transaction.date).slice(0, 7);
@@ -321,10 +322,34 @@ function buildMonthlyStats(monthsBack) {
 
   return {
     months,
-    energyPerMonth: months.map((month) => Number((transactionTotals[month]?.kwh || 0).toFixed(2))),
-    kilometersPerMonth: months.map((month) => Number((Number(state.monthlyKm[month]) || 0).toFixed(2))),
-    chargingCostPerMonth: months.map((month) => Number((transactionTotals[month]?.cost || 0).toFixed(2))),
-    chargingStopsPerMonth: months.map((month) => transactionTotals[month]?.stops || 0),
+    energyPerMonth: months.map((month) => {
+      if (month === currentMonth && !transactionTotals[month]) {
+        return null;
+      }
+
+      return Number((transactionTotals[month]?.kwh || 0).toFixed(2));
+    }),
+    kilometersPerMonth: months.map((month) => {
+      if (month === currentMonth && state.monthlyKm[month] === undefined && !transactionTotals[month]) {
+        return null;
+      }
+
+      return Number((Number(state.monthlyKm[month]) || 0).toFixed(2));
+    }),
+    chargingCostPerMonth: months.map((month) => {
+      if (month === currentMonth && !transactionTotals[month]) {
+        return null;
+      }
+
+      return Number((transactionTotals[month]?.cost || 0).toFixed(2));
+    }),
+    chargingStopsPerMonth: months.map((month) => {
+      if (month === currentMonth && !transactionTotals[month]) {
+        return null;
+      }
+
+      return transactionTotals[month]?.stops || 0;
+    }),
     avgCostPerKwhPerMonth: months.map((month) => {
       const energy = transactionTotals[month]?.kwh || 0;
       const cost = transactionTotals[month]?.cost || 0;
