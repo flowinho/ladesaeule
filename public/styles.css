@@ -1,16 +1,30 @@
 :root {
-  --bg: #eef3fb;
-  --surface: rgba(255, 255, 255, 0.92);
-  --surface-strong: #ffffff;
-  --border: rgba(23, 34, 58, 0.1);
-  --text: #19212f;
-  --muted: #627087;
-  --primary: #2f6fed;
-  --primary-deep: #2556ba;
-  --primary-soft: rgba(47, 111, 237, 0.12);
-  --success: #188a54;
-  --error: #c73b36;
-  --info: #1c6fa6;
+  --bg: #282a36;
+  --bg-alt: #1e1f29;
+  --surface: rgba(68, 71, 90, 0.9);
+  --surface-strong: #44475a;
+  --border: rgba(248, 248, 242, 0.15);
+  --text: #f8f8f2;
+  --muted: #bd93f9;
+  --primary: #bd93f9;
+  --primary-deep: #ff79c6;
+  --primary-soft: rgba(189, 147, 249, 0.2);
+  --success: #50fa7b;
+  --error: #ff5555;
+  --info: #8be9fd;
+  --on-primary: #1f1f29;
+  --surface-glass: rgba(68, 71, 90, 0.86);
+  --surface-elevated: rgba(53, 56, 74, 0.95);
+  --surface-overlay: rgba(248, 248, 242, 0.06);
+  --focus-ring: rgba(189, 147, 249, 0.34);
+  --hero-glow: rgba(189, 147, 249, 0.2);
+  --primary-gradient-end: #ff79c6;
+  --chart-energy: #bd93f9;
+  --chart-kilometers: #50fa7b;
+  --chart-cost: #ffb86c;
+  --chart-absolute-cost: #8be9fd;
+  --chart-avg-kwh: #ff79c6;
+  --chart-consumption: #f1fa8c;
   --shadow: 0 18px 45px rgba(29, 47, 78, 0.08);
   --shadow-soft: 0 10px 24px rgba(25, 33, 47, 0.08);
   --radius-xl: 28px;
@@ -18,6 +32,122 @@
   --radius-md: 14px;
   --radius-sm: 10px;
   --content-width: 1440px;
+}
+
+:root[data-theme='things3'] {
+  --bg: #f4f5f7;
+  --bg-alt: #eaedf1;
+  --surface: rgba(255, 255, 255, 0.92);
+  --surface-strong: #ffffff;
+  --border: rgba(31, 41, 55, 0.11);
+  --text: #1f2937;
+  --muted: #5f6b7c;
+  --primary: #2f80ed;
+  --primary-deep: #1f62cc;
+  --primary-soft: rgba(47, 128, 237, 0.13);
+  --success: #2e9e5b;
+  --error: #c44848;
+  --info: #3478a8;
+  --on-primary: #ffffff;
+  --surface-glass: rgba(255, 255, 255, 0.82);
+  --surface-elevated: rgba(247, 250, 255, 0.95);
+  --surface-overlay: rgba(28, 42, 74, 0.05);
+  --focus-ring: rgba(47, 128, 237, 0.22);
+  --hero-glow: rgba(47, 128, 237, 0.14);
+  --primary-gradient-end: #66a3ff;
+  --chart-energy: #2f80ed;
+  --chart-kilometers: #2e9e5b;
+  --chart-cost: #d98634;
+  --chart-absolute-cost: #3478a8;
+  --chart-avg-kwh: #4257b2;
+  --chart-consumption: #879e2a;
+}
+
+:root[data-theme='catppuccin'] {
+  --bg: #1e1e2e;
+  --bg-alt: #181825;
+  --surface: rgba(49, 50, 68, 0.94);
+  --surface-strong: #313244;
+  --border: rgba(205, 214, 244, 0.18);
+  --text: #cdd6f4;
+  --muted: #bac2de;
+  --primary: #89b4fa;
+  --primary-deep: #cba6f7;
+  --primary-soft: rgba(137, 180, 250, 0.22);
+  --success: #a6e3a1;
+  --error: #f38ba8;
+  --info: #74c7ec;
+  --on-primary: #11111b;
+  --surface-glass: rgba(49, 50, 68, 0.88);
+  --surface-elevated: rgba(36, 38, 54, 0.95);
+  --surface-overlay: rgba(205, 214, 244, 0.08);
+  --focus-ring: rgba(137, 180, 250, 0.33);
+  --hero-glow: rgba(137, 180, 250, 0.2);
+  --primary-gradient-end: #cba6f7;
+  --chart-energy: #89b4fa;
+  --chart-kilometers: #a6e3a1;
+  --chart-cost: #fab387;
+  --chart-absolute-cost: #74c7ec;
+  --chart-avg-kwh: #cba6f7;
+  --chart-consumption: #f9e2af;
+}
+
+:root[data-theme='tomorrow'] {
+  --bg: #ffffff;
+  --bg-alt: #f1f1f1;
+  --surface: rgba(255, 255, 255, 0.95);
+  --surface-strong: #ffffff;
+  --border: rgba(77, 77, 76, 0.18);
+  --text: #4d4d4c;
+  --muted: #8e908c;
+  --primary: #4271ae;
+  --primary-deep: #8959a8;
+  --primary-soft: rgba(66, 113, 174, 0.15);
+  --success: #718c00;
+  --error: #c82829;
+  --info: #3e999f;
+  --on-primary: #ffffff;
+  --surface-glass: rgba(255, 255, 255, 0.87);
+  --surface-elevated: rgba(249, 249, 249, 0.96);
+  --surface-overlay: rgba(77, 77, 76, 0.06);
+  --focus-ring: rgba(66, 113, 174, 0.25);
+  --hero-glow: rgba(66, 113, 174, 0.15);
+  --primary-gradient-end: #8959a8;
+  --chart-energy: #4271ae;
+  --chart-kilometers: #718c00;
+  --chart-cost: #f5871f;
+  --chart-absolute-cost: #3e999f;
+  --chart-avg-kwh: #8959a8;
+  --chart-consumption: #eab700;
+}
+
+:root[data-theme='oledDark'] {
+  --bg: #000000;
+  --bg-alt: #050505;
+  --surface: rgba(14, 14, 14, 0.96);
+  --surface-strong: #111111;
+  --border: rgba(255, 255, 255, 0.18);
+  --text: #f5f5f5;
+  --muted: #a3a3a3;
+  --primary: #3b82f6;
+  --primary-deep: #22d3ee;
+  --primary-soft: rgba(59, 130, 246, 0.22);
+  --success: #22c55e;
+  --error: #ef4444;
+  --info: #22d3ee;
+  --on-primary: #ffffff;
+  --surface-glass: rgba(14, 14, 14, 0.88);
+  --surface-elevated: rgba(23, 23, 23, 0.96);
+  --surface-overlay: rgba(255, 255, 255, 0.08);
+  --focus-ring: rgba(59, 130, 246, 0.35);
+  --hero-glow: rgba(59, 130, 246, 0.2);
+  --primary-gradient-end: #22d3ee;
+  --chart-energy: #3b82f6;
+  --chart-kilometers: #22c55e;
+  --chart-cost: #f59e0b;
+  --chart-absolute-cost: #22d3ee;
+  --chart-avg-kwh: #a78bfa;
+  --chart-consumption: #eab308;
 }
 
 * {
@@ -33,8 +163,8 @@ body {
   font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   color: var(--text);
   background:
-    radial-gradient(circle at top left, rgba(47, 111, 237, 0.12), transparent 32%),
-    linear-gradient(180deg, #f5f8fd 0%, var(--bg) 100%);
+    radial-gradient(circle at top left, var(--hero-glow), transparent 32%),
+    linear-gradient(180deg, var(--bg-alt) 0%, var(--bg) 100%);
 }
 
 button,
@@ -100,8 +230,8 @@ select {
 }
 
 .hero-actions .icon-button.active {
-  background: linear-gradient(135deg, var(--primary) 0%, #5d86f3 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-gradient-end) 100%);
+  color: var(--on-primary);
   box-shadow: var(--shadow-soft);
 }
 
@@ -115,8 +245,8 @@ select {
   max-height: 80px;
   border-radius: 22px;
   overflow: hidden;
-  background: linear-gradient(180deg, rgba(47, 111, 237, 0.14), rgba(47, 111, 237, 0.05));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  background: linear-gradient(180deg, var(--primary-soft), transparent);
+  box-shadow: inset 0 1px 0 var(--surface-overlay);
 }
 
 .brand-logo {
@@ -163,8 +293,8 @@ select {
 
 .install-button,
 .primary-button {
-  background: linear-gradient(135deg, var(--primary) 0%, #5d86f3 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-gradient-end) 100%);
+  color: var(--on-primary);
   box-shadow: var(--shadow-soft);
 }
 
@@ -205,7 +335,7 @@ select {
 }
 
 .ghost-button.danger {
-  background: rgba(199, 59, 54, 0.12);
+  background: var(--primary-soft);
   color: var(--error);
 }
 
@@ -215,13 +345,13 @@ select {
   justify-content: center;
   width: 2.9rem;
   height: 2.9rem;
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--surface-glass);
   color: var(--primary-deep);
   box-shadow: var(--shadow-soft);
 }
 
 .elevated-button {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(240, 244, 251, 0.95));
+  background: linear-gradient(180deg, var(--surface-strong), var(--surface-elevated));
 }
 
 .install-button:hover,
@@ -240,7 +370,7 @@ select {
   overflow: visible;
   background: var(--surface);
   backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.75);
+  border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow);
 }
@@ -282,7 +412,7 @@ select {
   gap: 0.45rem;
   padding: 0.35rem;
   border-radius: 999px;
-  background: rgba(28, 42, 74, 0.05);
+  background: var(--surface-overlay);
 }
 
 .range-chip {
@@ -301,7 +431,7 @@ select {
 .section-badge {
   padding: 0.55rem 0.8rem;
   border-radius: 999px;
-  background: rgba(24, 138, 84, 0.1);
+  background: var(--primary-soft);
   color: var(--success);
   font-size: 0.84rem;
   font-weight: 700;
@@ -319,11 +449,11 @@ select {
 
 .chart-card {
   overflow: hidden;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(247, 250, 255, 0.92));
+  background: linear-gradient(180deg, var(--surface-glass), var(--surface-elevated));
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 1rem;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 1px 0 var(--surface-overlay);
 }
 
 .chart-card canvas {
@@ -377,9 +507,9 @@ select {
   grid-template-columns: 1.35fr 1fr;
   gap: 0.8rem;
   padding: 0.8rem;
-  border: 1px solid rgba(23, 34, 58, 0.08);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, rgba(250, 252, 255, 0.95), rgba(243, 247, 252, 0.95));
+  background: linear-gradient(180deg, var(--surface-glass), var(--surface-elevated));
 }
 
 .month-picker-field span {
@@ -418,9 +548,9 @@ select {
   width: 100%;
   min-width: 0;
   padding: 0.7rem 0.95rem;
-  border: 1px solid rgba(23, 34, 58, 0.13);
+  border: 1px solid var(--border);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--surface-strong);
   color: var(--text);
   outline: none;
 }
@@ -437,11 +567,11 @@ select {
   width: 100%;
   min-width: 0;
   padding: 0.95rem 1rem;
-  border: 1px solid rgba(23, 34, 58, 0.13);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--surface-strong);
   color: var(--text);
-  box-shadow: inset 0 1px 2px rgba(19, 31, 54, 0.04);
+  box-shadow: inset 0 1px 2px var(--surface-overlay);
   outline: none;
   transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 }
@@ -450,23 +580,23 @@ select {
   width: 100%;
   min-width: 0;
   padding: 0.95rem 1rem;
-  border: 1px solid rgba(23, 34, 58, 0.13);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--surface-strong);
   color: var(--text);
   outline: none;
   transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 }
 
 .field input:focus {
-  border-color: rgba(47, 111, 237, 0.6);
-  box-shadow: 0 0 0 4px rgba(47, 111, 237, 0.12);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--focus-ring);
   transform: translateY(-1px);
 }
 
 .field select:focus {
-  border-color: rgba(47, 111, 237, 0.6);
-  box-shadow: 0 0 0 4px rgba(47, 111, 237, 0.12);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--focus-ring);
   transform: translateY(-1px);
 }
 
@@ -480,12 +610,12 @@ select {
 .table-icon-button {
   width: 2.35rem;
   height: 2.35rem;
-  background: rgba(47, 111, 237, 0.1);
+  background: var(--primary-soft);
   box-shadow: none;
 }
 
 .table-icon-button:hover {
-  background: rgba(47, 111, 237, 0.16);
+  background: var(--primary-soft);
 }
 
 .table-wrap {
@@ -505,7 +635,7 @@ select {
 .data-table td {
   padding: 0.9rem 0.75rem;
   text-align: left;
-  border-bottom: 1px solid rgba(23, 34, 58, 0.08);
+  border-bottom: 1px solid var(--border);
 }
 
 .data-table th {
@@ -517,7 +647,7 @@ select {
 }
 
 .data-table tbody tr:hover {
-  background: rgba(47, 111, 237, 0.035);
+  background: var(--primary-soft);
 }
 
 .empty-state {
@@ -536,8 +666,8 @@ select {
   max-width: 90vw;
   padding: 0.95rem 1rem;
   border-radius: 14px;
-  color: #fff;
-  background: rgba(25, 33, 47, 0.94);
+  color: var(--text);
+  background: var(--surface-strong);
   box-shadow: var(--shadow);
   opacity: 0;
   pointer-events: none;
@@ -550,11 +680,13 @@ select {
 }
 
 .toast.success {
-  background: rgba(24, 138, 84, 0.96);
+  background: var(--success);
+  color: var(--on-primary);
 }
 
 .toast.error {
-  background: rgba(199, 59, 54, 0.96);
+  background: var(--error);
+  color: var(--on-primary);
 }
 
 .settings-panel {
@@ -571,7 +703,7 @@ select {
 .settings-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(17, 23, 34, 0.38);
+  background: rgba(0, 0, 0, 0.45);
   opacity: 0;
   transition: opacity 0.22s ease;
 }
@@ -623,7 +755,7 @@ select {
   padding: 1rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(244, 247, 252, 0.96));
+  background: linear-gradient(180deg, var(--surface-glass), var(--surface-elevated));
 }
 
 .settings-card-header {
@@ -657,6 +789,37 @@ select {
   gap: 0.8rem;
   margin-top: 0.4rem;
   flex-wrap: wrap;
+}
+
+.theme-drawer {
+  width: min(92vw, 420px);
+}
+
+.theme-content {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.theme-options {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.theme-choice-button {
+  border: 1px solid var(--border);
+  background: var(--surface-glass);
+  color: var(--text);
+  border-radius: var(--radius-md);
+  padding: 0.8rem 0.9rem;
+  text-align: left;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.theme-choice-button.active {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+  background: var(--primary-soft);
 }
 
 @media (min-width: 760px) {
@@ -763,7 +926,7 @@ select {
 
   .data-table tr {
     padding: 0.3rem 0;
-    border-bottom: 1px solid rgba(23, 34, 58, 0.08);
+    border-bottom: 1px solid var(--border);
   }
 
   .data-table td {
