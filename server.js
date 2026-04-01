@@ -18,6 +18,7 @@ const {
 } = require('./lib/validation');
 const {
   parseMercedesBenzPublicChargeCsv,
+  parseLegacyLadeschweinleCsv,
   mergeTransactionsBySignature
 } = require('./lib/importers');
 
@@ -208,17 +209,37 @@ app.post('/import/csv', (req, res) => {
       throw new Error('CSV-Datei ist leer.');
     }
 
-    if (tariff !== 'mercedes-benz-public-charge') {
-      throw new Error('Tarif wird derzeit nicht unterstützt.');
+    if (tariff === 'mercedes-benz-public-charge') {
+      const parsedTransactions = parseMercedesBenzPublicChargeCsv(csvText);
+      const existingTransactions = readTransactions();
+      const mergedTransactions = mergeTransactionsBySignature(existingTransactions, parsedTransactions);
+      writeTransactions(mergedTransactions);
+
+      const added = mergedTransactions.length - existingTransactions.length;
+      redirectWithMessage(res, 'notice', `${added} Ladevorgänge importiert.`);
+      return;
     }
 
-    const parsedTransactions = parseMercedesBenzPublicChargeCsv(csvText);
-    const existingTransactions = readTransactions();
-    const mergedTransactions = mergeTransactionsBySignature(existingTransactions, parsedTransactions);
-    writeTransactions(mergedTransactions);
+    if (tariff === 'legacy-ladeschweinle') {
+      const parsedData = parseLegacyLadeschweinleCsv(csvText);
+      const existingTransactions = readTransactions();
+      const mergedTransactions = mergeTransactionsBySignature(existingTransactions, parsedData.transactions);
+      const existingMonthlyKilometers = readMonthlyKilometers();
+      const mergedMonthlyKilometers = {
+        ...existingMonthlyKilometers,
+        ...parsedData.monthlyKilometers
+      };
 
-    const added = mergedTransactions.length - existingTransactions.length;
-    redirectWithMessage(res, 'notice', `${added} Ladevorgänge importiert.`);
+      writeTransactions(mergedTransactions);
+      writeMonthlyKilometers(mergedMonthlyKilometers);
+
+      const addedTransactions = mergedTransactions.length - existingTransactions.length;
+      const updatedMonths = Object.keys(parsedData.monthlyKilometers).length;
+      redirectWithMessage(res, 'notice', `${addedTransactions} Ladevorgänge und ${updatedMonths} Monatskilometer importiert.`);
+      return;
+    }
+
+    throw new Error('Tarif wird derzeit nicht unterstützt.');
   } catch (error) {
     redirectWithMessage(res, 'error', error.message || 'CSV-Import fehlgeschlagen.');
   }

@@ -14,6 +14,7 @@ Schlichte Progressive Web App fuer einen Raspberry Pi mit Raspberry Pi OS. Die A
 - JSON-Dateien statt Datenbank
 - Einstellungen-Menue fuer JSON-Import, JSON-Export und CSV-Tarifimporte
 - CSV-Import fuer `Mercedes Benz Public Charge`
+- CSV-Import fuer `Legacy Ladeschweinle Tarif`
 
 ## Architektur
 
@@ -108,7 +109,9 @@ Die IP-Adresse des Raspberry Pi laesst sich zum Beispiel mit `hostname -I` ermit
 - Im Einstellungen-Menue lassen sich alle Daten als JSON herunterladen
 - JSON-Import akzeptiert entweder einen Gesamtexport oder einzelne Datenbestaende
 - CSV-Import ist aktuell fuer `Mercedes Benz Public Charge` vorbereitet
+- CSV-Import ist aktuell fuer `Mercedes Benz Public Charge` und `Legacy Ladeschweinle Tarif` vorbereitet
 - Beim CSV-Import werden nur Datum, Energie, Preis pro kWh, Gebuehr und Gesamtkosten uebernommen
+- Der Legacy-Ladeschweinle-Import uebernimmt zusaetzlich Monatskilometer aus den `mileage`-Zeilen
 - Bereits vorhandene Ladevorgaenge werden beim CSV-Import ueber eine inhaltliche Signatur gegen Dubletten geprueft
 
 ## Ideen fuer spaetere Erweiterungen
