@@ -977,8 +977,9 @@ select {
     grid-column: 1;
     grid-row: 1;
     margin: 0;
-    position: sticky;
-    top: 1rem;
+    position: relative;
+    top: auto;
+    align-self: start;
   }
 
   .content.ultrawide-active .summary-section {
@@ -995,6 +996,7 @@ select {
   .content.ultrawide-active .overview-grid {
     grid-column: 1 / span 2;
     grid-row: 2;
+    margin-top: 0;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-content: start;
   }
