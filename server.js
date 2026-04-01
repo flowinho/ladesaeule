@@ -10,6 +10,7 @@ const {
   writeTransactions
 } = require('./lib/storage');
 const {
+  getPreviousMonth,
   parseMonth,
   parseMonthlyKilometersPayload,
   parseTransactionPayload,
@@ -65,10 +66,16 @@ app.get('/', (req, res) => {
 app.post('/monthly-km', (req, res) => {
   try {
     const month = parseMonth(req.body.month);
-    const kilometers = parseMonthlyKilometersPayload({ kilometers: req.body.kilometers });
     const monthlyKilometers = readMonthlyKilometers();
+    const previousMonth = getPreviousMonth(month);
+    const monthlyKilometerEntry = parseMonthlyKilometersPayload({
+      kilometers: req.body.kilometers,
+      odometer: req.body.odometer
+    }, {
+      previousEntry: monthlyKilometers[previousMonth] || null
+    });
 
-    monthlyKilometers[month] = kilometers;
+    monthlyKilometers[month] = monthlyKilometerEntry;
     writeMonthlyKilometers(monthlyKilometers);
 
     redirectWithMessage(res, 'notice', 'Kilometer für den Monat gespeichert.');

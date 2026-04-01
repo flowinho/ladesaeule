@@ -88,6 +88,8 @@ const transactionEditorFields = document.getElementById('transactionEditorFields
 const editorMonthSelect = document.getElementById('editorMonthSelect');
 const editorYearSelect = document.getElementById('editorYearSelect');
 const editorKilometers = document.getElementById('editorKilometers');
+const editorOdometer = document.getElementById('editorOdometer');
+const editorOdometerHint = document.getElementById('editorOdometerHint');
 const editorDate = document.getElementById('editorDate');
 const editorKwh = document.getElementById('editorKwh');
 const editorPricePerKwh = document.getElementById('editorPricePerKwh');
@@ -105,6 +107,7 @@ const confirmMessage = document.getElementById('confirmMessage');
 
 state.theme = window.localStorage.getItem('ladeschweinle-theme') || 'things3';
 state.pendingDangerAction = null;
+state.monthlyKilometersAutoFilled = false;
 
 function openThemeDialog() {
   themePanel.classList.add('open');
@@ -292,6 +295,28 @@ function formatDate(dateValue) {
   });
 }
 
+function getMonthlyEntry(month) {
+  return state.monthlyKm[month] && typeof state.monthlyKm[month] === 'object'
+    ? state.monthlyKm[month]
+    : null;
+}
+
+function getMonthlyKilometersValue(month) {
+  const entry = getMonthlyEntry(month);
+  return Number(entry?.kilometers) || 0;
+}
+
+function getMonthlyOdometerValue(month) {
+  const entry = getMonthlyEntry(month);
+  return entry && Number.isFinite(Number(entry.odometer)) ? Number(entry.odometer) : null;
+}
+
+function getPreviousMonthKey(month) {
+  const [year, monthPart] = month.split('-').map(Number);
+  const previousDate = new Date(year, monthPart - 2, 1);
+  return `${previousDate.getFullYear()}-${String(previousDate.getMonth() + 1).padStart(2, '0')}`;
+}
+
 function buildMonthRange(monthsBack) {
   const months = [];
   const today = new Date();
@@ -334,7 +359,7 @@ function buildMonthlyStats(monthsBack) {
         return null;
       }
 
-      return Number((Number(state.monthlyKm[month]) || 0).toFixed(2));
+      return Number(getMonthlyKilometersValue(month).toFixed(2));
     }),
     chargingCostPerMonth: months.map((month) => {
       if (month === currentMonth && !transactionTotals[month]) {
@@ -357,11 +382,11 @@ function buildMonthlyStats(monthsBack) {
     }),
     consumptionPer100Km: months.map((month) => {
       const energy = transactionTotals[month]?.kwh || 0;
-      const kilometers = Number(state.monthlyKm[month]) || 0;
+      const kilometers = getMonthlyKilometersValue(month);
       return kilometers > 0 ? Number(((energy / kilometers) * 100).toFixed(2)) : null;
     }),
     costPer100Km: months.map((month) => {
-      const kilometers = Number(state.monthlyKm[month]) || 0;
+      const kilometers = getMonthlyKilometersValue(month);
       const cost = transactionTotals[month]?.cost || 0;
       return kilometers > 0 ? Number(((cost / kilometers) * 100).toFixed(2)) : null;
     })
@@ -403,7 +428,7 @@ function buildSummaryStats() {
   const kilometerMonths = Object.keys(state.monthlyKm);
   const energyMonths = Object.keys(monthlyTransactionTotals);
   const currentMonth = getLastMonthKey();
-  const currentKilometers = Number(state.monthlyKm[currentMonth]) || 0;
+  const currentKilometers = getMonthlyKilometersValue(currentMonth);
   const currentEnergy = monthlyTransactionTotals[currentMonth]?.kwh || 0;
   const currentCost = monthlyTransactionTotals[currentMonth]?.cost || 0;
   const currentStops = monthlyTransactionTotals[currentMonth]?.stops || 0;
@@ -424,7 +449,7 @@ function buildSummaryStats() {
       key: 'kilometers',
       label: 'Gefahrene Kilometer',
       icon: 'icon-car',
-      average: averageValues(kilometerMonths.map((month) => Number((Number(state.monthlyKm[month]) || 0).toFixed(2)))),
+      average: averageValues(kilometerMonths.map((month) => Number(getMonthlyKilometersValue(month).toFixed(2)))),
       current: Number(currentKilometers.toFixed(2)),
       formatter: (value) => `${decimalFormatter.format(value)} km`
     },
@@ -433,7 +458,7 @@ function buildSummaryStats() {
       label: 'Kosten pro 100 km',
       icon: 'icon-euro',
       average: averageValues(kilometerMonths.map((month) => {
-        const kilometers = Number(state.monthlyKm[month]) || 0;
+        const kilometers = getMonthlyKilometersValue(month);
         const monthlyCost = monthlyTransactionTotals[month]?.cost || 0;
         return kilometers > 0 ? Number(((monthlyCost / kilometers) * 100).toFixed(2)) : null;
       })),
@@ -473,7 +498,7 @@ function buildSummaryStats() {
       label: 'Verbrauch',
       icon: 'icon-chart',
       average: averageValues(kilometerMonths.map((month) => {
-        const kilometers = Number(state.monthlyKm[month]) || 0;
+        const kilometers = getMonthlyKilometersValue(month);
         const energy = monthlyTransactionTotals[month]?.kwh || 0;
         return kilometers > 0 ? Number(((energy / kilometers) * 100).toFixed(2)) : null;
       })),
@@ -558,16 +583,17 @@ function renderMonthlyKmTable() {
     .sort((a, b) => b[0].localeCompare(a[0]));
 
   if (!entries.length) {
-    monthlyKmTableBody.innerHTML = '<tr><td colspan="3" class="empty-state">Noch keine Kilometerdaten vorhanden.</td></tr>';
+    monthlyKmTableBody.innerHTML = '<tr><td colspan="4" class="empty-state">Noch keine Kilometerdaten vorhanden.</td></tr>';
     return;
   }
 
   monthlyKmTableBody.innerHTML = entries.map(([month, kilometers]) => `
     <tr>
       <td data-label="Monat">${formatMonthLong(month)}</td>
-      <td data-label="Kilometer">${decimalFormatter.format(kilometers)} km</td>
+      <td data-label="Kilometer">${decimalFormatter.format(getMonthlyKilometersValue(month))} km</td>
+      <td data-label="KM-Stand">${getMonthlyOdometerValue(month) !== null ? `${decimalFormatter.format(getMonthlyOdometerValue(month))} km` : '—'}</td>
       <td data-label="Aktion">
-        <button class="icon-button table-icon-button" type="button" aria-label="Monatseintrag bearbeiten" data-entry-type="monthly-km" data-month="${month}" data-kilometers="${kilometers}">
+        <button class="icon-button table-icon-button" type="button" aria-label="Monatseintrag bearbeiten" data-entry-type="monthly-km" data-month="${month}" data-kilometers="${getMonthlyKilometersValue(month)}" data-odometer="${getMonthlyOdometerValue(month) ?? ''}">
           <svg class="icon"><use href="/icons/material-symbols.svg#icon-edit"></use></svg>
         </button>
       </td>
@@ -854,7 +880,11 @@ function setMonthlyEditorActive(active) {
   editorMonthSelect.disabled = !active;
   editorYearSelect.disabled = !active;
   editorKilometers.disabled = !active;
+  editorOdometer.disabled = !active;
   editorKilometers.required = active;
+  if (!active) {
+    editorOdometerHint.textContent = '';
+  }
 }
 
 function setTransactionEditorActive(active) {
@@ -886,6 +916,33 @@ function populateEditorMonth(month) {
 
 function syncEditorMonthValue() {
   editorMonthValue.value = getSelectedMonthValue(editorMonthSelect, editorYearSelect);
+  updateMonthlyEditorAutoCalculation();
+}
+
+function updateMonthlyEditorAutoCalculation() {
+  const month = editorMonthValue.value || getSelectedMonthValue(editorMonthSelect, editorYearSelect);
+  const previousMonth = getPreviousMonthKey(month);
+  const previousOdometer = getMonthlyOdometerValue(previousMonth);
+  const odometerValue = editorOdometer.value === '' ? null : Number.parseFloat(editorOdometer.value);
+  const kilometersValue = editorKilometers.value.trim();
+
+  if (previousOdometer !== null) {
+    editorOdometerHint.textContent = `KM-Stand Vormonat (${formatMonthLong(previousMonth)}): ${decimalFormatter.format(previousOdometer)} km. Wenn das Kilometerfeld leer bleibt, wird der Wert automatisch vorgeschlagen.`;
+  } else {
+    editorOdometerHint.textContent = 'Kein KM-Stand des Vormonats vorhanden. Gefahrene Kilometer bitte manuell eingeben.';
+  }
+
+  if ((kilometersValue === '' || state.monthlyKilometersAutoFilled) && previousOdometer !== null && Number.isFinite(odometerValue)) {
+    const calculatedKilometers = Number((odometerValue - previousOdometer).toFixed(2));
+
+    if (Number.isFinite(calculatedKilometers) && calculatedKilometers >= 0) {
+      editorKilometers.value = String(calculatedKilometers);
+      state.monthlyKilometersAutoFilled = true;
+    } else if (state.monthlyKilometersAutoFilled || kilometersValue === '') {
+      editorKilometers.value = '';
+      state.monthlyKilometersAutoFilled = false;
+    }
+  }
 }
 
 function openCreateMonthlyEditor() {
@@ -895,23 +952,29 @@ function openCreateMonthlyEditor() {
   editorMode.value = 'create';
   editorId.value = '';
   editorKilometers.value = '';
+  editorOdometer.value = '';
+  state.monthlyKilometersAutoFilled = false;
   setMonthlyEditorActive(true);
   setTransactionEditorActive(false);
   setEditorHeading('create', 'monthly-km');
   populateEditorMonth(`${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`);
+  updateMonthlyEditorAutoCalculation();
   deleteEntryButton.classList.add('hidden');
   openEditor();
 }
 
-function openMonthlyEditor(month, kilometers) {
+function openMonthlyEditor(month, kilometers, odometer) {
   editorType.value = 'monthly-km';
   editorMode.value = 'edit';
   editorId.value = '';
   populateEditorMonth(month);
   editorKilometers.value = kilometers;
+  editorOdometer.value = odometer || '';
+  state.monthlyKilometersAutoFilled = false;
   setMonthlyEditorActive(true);
   setTransactionEditorActive(false);
   setEditorHeading('edit', 'monthly-km');
+  updateMonthlyEditorAutoCalculation();
   deleteEntryButton.classList.remove('hidden');
   openEditor();
 }
@@ -960,7 +1023,7 @@ function handleTableClick(event) {
   }
 
   if (entryButton.dataset.entryType === 'monthly-km') {
-    openMonthlyEditor(entryButton.dataset.month, entryButton.dataset.kilometers);
+    openMonthlyEditor(entryButton.dataset.month, entryButton.dataset.kilometers, entryButton.dataset.odometer);
     return;
   }
 
@@ -975,7 +1038,8 @@ function handleEditorSubmit(event) {
   if (editorType.value === 'monthly-km') {
     submitPost('/monthly-km', {
       month: editorMonthValue.value,
-      kilometers: editorKilometers.value
+      kilometers: editorKilometers.value,
+      odometer: editorOdometer.value
     });
     return;
   }
@@ -1096,6 +1160,10 @@ function setupEditor() {
   deleteEntryButton.addEventListener('click', handleDeleteEntry);
   editorMonthSelect.addEventListener('change', syncEditorMonthValue);
   editorYearSelect.addEventListener('change', syncEditorMonthValue);
+  editorOdometer.addEventListener('input', updateMonthlyEditorAutoCalculation);
+  editorKilometers.addEventListener('input', () => {
+    state.monthlyKilometersAutoFilled = false;
+  });
 }
 
 function setupConfirmDialog() {

@@ -657,6 +657,12 @@ select {
   overflow-wrap: anywhere;
 }
 
+.field-hint {
+  margin: -0.1rem 0 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
 .field input {
   width: 100%;
   min-width: 0;
@@ -686,6 +692,11 @@ select {
   border-color: var(--primary);
   box-shadow: 0 0 0 4px var(--focus-ring);
   transform: translateY(-1px);
+}
+
+.field input[readonly] {
+  background: var(--surface-elevated);
+  color: var(--muted);
 }
 
 .field select:focus {

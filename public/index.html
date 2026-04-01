@@ -155,6 +155,7 @@
                   <tr>
                     <th>Monat</th>
                     <th>Kilometer</th>
+                    <th>KM-Stand</th>
                     <th>Aktion</th>
                   </tr>
                 </thead>
@@ -343,6 +344,11 @@
                 <span>Kilometer</span>
                 <input id="editorKilometers" type="number" min="0" step="0.1" required />
               </label>
+              <label class="field">
+                <span>KM-Stand des Fahrzeugs</span>
+                <input id="editorOdometer" type="number" min="0" step="0.1" />
+              </label>
+              <p id="editorOdometerHint" class="field-hint muted"></p>
             </div>
 
             <div id="transactionEditorFields" class="editor-fields hidden">
