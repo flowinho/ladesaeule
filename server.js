@@ -1,5 +1,6 @@
-const express = require('express');
+const fs = require('fs');
 const path = require('path');
+const express = require('express');
 const {
   DATA_DIR,
   ensureDataFiles,
@@ -15,7 +16,6 @@ const {
   normalizeImportedMonthlyKilometers,
   normalizeImportedTransactions
 } = require('./lib/validation');
-const { buildMonthlyStats } = require('./lib/stats');
 const {
   parseMercedesBenzPublicChargeCsv,
   mergeTransactionsBySignature
@@ -24,59 +24,77 @@ const {
 const app = express();
 const PORT = process.env.PORT || 1337;
 const HOST = process.env.HOST || '0.0.0.0';
+const INDEX_PATH = path.join(__dirname, 'public', 'index.html');
 
 ensureDataFiles();
 
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.urlencoded({ extended: false, limit: '3mb' }));
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 app.use('/vendor/chart', express.static(path.join(__dirname, 'node_modules', 'chart.js', 'dist')));
 
-app.get('/api/monthly-km', (req, res) => {
-  res.json(readMonthlyKilometers());
+function buildPageState(req) {
+  return {
+    monthlyKilometers: readMonthlyKilometers(),
+    transactions: readTransactions().sort((a, b) => b.date.localeCompare(a.date)),
+    notice: typeof req.query.notice === 'string' ? req.query.notice : '',
+    error: typeof req.query.error === 'string' ? req.query.error : ''
+  };
+}
+
+function serializeState(value) {
+  return JSON.stringify(value).replace(/</g, '\\u003c');
+}
+
+function renderIndex(req, res) {
+  const template = fs.readFileSync(INDEX_PATH, 'utf8');
+  const state = buildPageState(req);
+  const bootstrapScript = `<script id="bootstrap-data" type="application/json">${serializeState(state)}</script>`;
+  res.send(template.replace('<script src="/vendor/chart/chart.umd.js"></script>', `${bootstrapScript}\n    <script src="/vendor/chart/chart.umd.js"></script>`));
+}
+
+function redirectWithMessage(res, type, message) {
+  const query = new URLSearchParams({ [type]: message });
+  res.redirect(`/?${query.toString()}`);
+}
+
+app.get('/', (req, res) => {
+  renderIndex(req, res);
 });
 
-app.put('/api/monthly-km/:month', (req, res, next) => {
+app.post('/monthly-km', (req, res) => {
   try {
-    const month = parseMonth(req.params.month);
-    const kilometers = parseMonthlyKilometersPayload(req.body);
+    const month = parseMonth(req.body.month);
+    const kilometers = parseMonthlyKilometersPayload({ kilometers: req.body.kilometers });
     const monthlyKilometers = readMonthlyKilometers();
 
     monthlyKilometers[month] = kilometers;
     writeMonthlyKilometers(monthlyKilometers);
 
-    res.json({
-      month,
-      kilometers
-    });
+    redirectWithMessage(res, 'notice', 'Kilometer für den Monat gespeichert.');
   } catch (error) {
-    next(error);
+    redirectWithMessage(res, 'error', error.message || 'Speichern fehlgeschlagen.');
   }
 });
 
-app.delete('/api/monthly-km/:month', (req, res, next) => {
+app.post('/monthly-km/:month/delete', (req, res) => {
   try {
     const month = parseMonth(req.params.month);
     const monthlyKilometers = readMonthlyKilometers();
 
     if (!(month in monthlyKilometers)) {
-      return res.status(404).json({ error: 'Eintrag nicht gefunden.' });
+      throw new Error('Eintrag nicht gefunden.');
     }
 
     delete monthlyKilometers[month];
     writeMonthlyKilometers(monthlyKilometers);
 
-    res.status(204).send();
+    redirectWithMessage(res, 'notice', 'Eintrag gelöscht.');
   } catch (error) {
-    next(error);
+    redirectWithMessage(res, 'error', error.message || 'Löschen fehlgeschlagen.');
   }
 });
 
-app.get('/api/transactions', (req, res) => {
-  const transactions = readTransactions().sort((a, b) => b.date.localeCompare(a.date));
-  res.json(transactions);
-});
-
-app.post('/api/transactions', (req, res, next) => {
+app.post('/transactions', (req, res) => {
   try {
     const transaction = parseTransactionPayload(req.body);
     const transactions = readTransactions();
@@ -84,19 +102,19 @@ app.post('/api/transactions', (req, res, next) => {
     transactions.push(transaction);
     writeTransactions(transactions);
 
-    res.status(201).json(transaction);
+    redirectWithMessage(res, 'notice', 'Ladevorgang gespeichert.');
   } catch (error) {
-    next(error);
+    redirectWithMessage(res, 'error', error.message || 'Speichern fehlgeschlagen.');
   }
 });
 
-app.put('/api/transactions/:id', (req, res, next) => {
+app.post('/transactions/:id/update', (req, res) => {
   try {
     const transactions = readTransactions();
     const index = transactions.findIndex((entry) => entry.id === req.params.id);
 
     if (index === -1) {
-      return res.status(404).json({ error: 'Eintrag nicht gefunden.' });
+      throw new Error('Eintrag nicht gefunden.');
     }
 
     const transaction = parseTransactionPayload(req.body);
@@ -104,46 +122,30 @@ app.put('/api/transactions/:id', (req, res, next) => {
     transactions[index] = transaction;
     writeTransactions(transactions);
 
-    res.json(transaction);
+    redirectWithMessage(res, 'notice', 'Eintrag gespeichert.');
   } catch (error) {
-    next(error);
+    redirectWithMessage(res, 'error', error.message || 'Speichern fehlgeschlagen.');
   }
 });
 
-app.delete('/api/transactions/:id', (req, res, next) => {
+app.post('/transactions/:id/delete', (req, res) => {
   try {
     const transactions = readTransactions();
     const nextTransactions = transactions.filter((entry) => entry.id !== req.params.id);
 
     if (nextTransactions.length === transactions.length) {
-      return res.status(404).json({ error: 'Eintrag nicht gefunden.' });
+      throw new Error('Eintrag nicht gefunden.');
     }
 
     writeTransactions(nextTransactions);
-    res.status(204).send();
+    redirectWithMessage(res, 'notice', 'Eintrag gelöscht.');
   } catch (error) {
-    next(error);
+    redirectWithMessage(res, 'error', error.message || 'Löschen fehlgeschlagen.');
   }
 });
 
-app.get('/api/stats', (req, res, next) => {
-  try {
-    const range = Number.parseInt(req.query.range, 10);
-    const statsRange = [3, 6, 12].includes(range) ? range : 6;
-
-    const stats = buildMonthlyStats({
-      monthlyKilometers: readMonthlyKilometers(),
-      transactions: readTransactions(),
-      monthsBack: statsRange
-    });
-
-    res.json(stats);
-  } catch (error) {
-    next(error);
-  }
-});
-
-app.get('/api/export/all', (req, res) => {
+app.get('/export/all.json', (req, res) => {
+  res.setHeader('Content-Disposition', 'attachment; filename="ladesaeule-export.json"');
   res.json({
     version: 1,
     exportedAt: new Date().toISOString(),
@@ -152,21 +154,19 @@ app.get('/api/export/all', (req, res) => {
   });
 });
 
-app.get('/api/export/monthly-km', (req, res) => {
+app.get('/export/monthly-km.json', (req, res) => {
+  res.setHeader('Content-Disposition', 'attachment; filename="monthly-km.json"');
   res.json(readMonthlyKilometers());
 });
 
-app.get('/api/export/transactions', (req, res) => {
+app.get('/export/transactions.json', (req, res) => {
+  res.setHeader('Content-Disposition', 'attachment; filename="transactions.json"');
   res.json(readTransactions());
 });
 
-app.post('/api/import/json', (req, res, next) => {
+app.post('/import/json', (req, res) => {
   try {
-    const payload = req.body;
-
-    if (!payload || typeof payload !== 'object') {
-      throw new Error('Ungültige JSON-Datei.');
-    }
+    const payload = JSON.parse(req.body.payload || '');
 
     let nextMonthlyKilometers = null;
     let nextTransactions = null;
@@ -193,20 +193,16 @@ app.post('/api/import/json', (req, res, next) => {
       writeTransactions(nextTransactions);
     }
 
-    res.json({
-      message: 'JSON-Import erfolgreich.',
-      monthlyKilometersUpdated: Boolean(nextMonthlyKilometers),
-      transactionsUpdated: Boolean(nextTransactions)
-    });
+    redirectWithMessage(res, 'notice', 'JSON-Datei importiert.');
   } catch (error) {
-    next(error);
+    redirectWithMessage(res, 'error', error.message || 'JSON-Import fehlgeschlagen.');
   }
 });
 
-app.post('/api/import/csv', express.text({ type: '*/*', limit: '2mb' }), (req, res, next) => {
+app.post('/import/csv', (req, res) => {
   try {
-    const tariff = typeof req.query.tariff === 'string' ? req.query.tariff : '';
-    const csvText = typeof req.body === 'string' ? req.body : '';
+    const tariff = typeof req.body.tariff === 'string' ? req.body.tariff : '';
+    const csvText = typeof req.body.csvText === 'string' ? req.body.csvText : '';
 
     if (!csvText.trim()) {
       throw new Error('CSV-Datei ist leer.');
@@ -221,38 +217,16 @@ app.post('/api/import/csv', express.text({ type: '*/*', limit: '2mb' }), (req, r
     const mergedTransactions = mergeTransactionsBySignature(existingTransactions, parsedTransactions);
     writeTransactions(mergedTransactions);
 
-    res.json({
-      message: 'CSV-Import abgeschlossen.',
-      imported: parsedTransactions.length,
-      added: mergedTransactions.length - existingTransactions.length,
-      skipped: parsedTransactions.length - (mergedTransactions.length - existingTransactions.length)
-    });
+    const added = mergedTransactions.length - existingTransactions.length;
+    redirectWithMessage(res, 'notice', `${added} Ladevorgänge importiert.`);
   } catch (error) {
-    next(error);
+    redirectWithMessage(res, 'error', error.message || 'CSV-Import fehlgeschlagen.');
   }
-});
-
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    dataDirectory: DATA_DIR
-  });
-});
-
-app.use((err, req, res, next) => {
-  if (res.headersSent) {
-    return next(err);
-  }
-
-  const status = err.statusCode || 400;
-  res.status(status).json({
-    error: err.message || 'Unbekannter Fehler.'
-  });
 });
 
 if (require.main === module) {
   app.listen(PORT, HOST, () => {
-    console.log(`Server laeuft auf http://${HOST}:${PORT}`);
+    console.log(`Server läuft auf http://${HOST}:${PORT}`);
   });
 }
 

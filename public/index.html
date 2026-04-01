@@ -21,7 +21,7 @@
           <p class="eyebrow">Elektrofahrzeug</p>
           <div class="hero-title-row">
             <span class="brand-mark" aria-hidden="true">
-              <svg class="icon icon-lg"><use href="/icons/material-symbols.svg#icon-bolt"></use></svg>
+              <img class="brand-logo" src="/assets/applogo_ladesau.png" alt="" />
             </span>
             <h1>Ladesäule</h1>
           </div>
@@ -99,7 +99,8 @@
                 <p class="muted">Ein Wert pro Monat</p>
               </div>
             </div>
-            <form id="monthlyKmForm" class="form-grid">
+            <form id="monthlyKmForm" class="form-grid" action="/monthly-km" method="post">
+              <input id="monthInput" name="month" type="hidden" />
               <div class="field month-picker-group">
                 <span>Monat auswählen</span>
                 <div class="month-picker">
@@ -132,7 +133,7 @@
                 <p class="muted">Kosten werden automatisch berechnet</p>
               </div>
             </div>
-            <form id="transactionForm" class="form-grid">
+            <form id="transactionForm" class="form-grid" action="/transactions" method="post">
               <label class="field">
                 <span>Datum</span>
                 <input name="date" type="date" required />
@@ -226,9 +227,9 @@
                 <p class="muted">Komplette Sicherung oder einzelne Datenbestände herunterladen</p>
               </div>
               <div class="settings-actions">
-                <button class="ghost-button" type="button" data-export="all">Gesamtexport</button>
-                <button class="ghost-button" type="button" data-export="monthly-km">Monatskilometer</button>
-                <button class="ghost-button" type="button" data-export="transactions">Ladevorgänge</button>
+                <a class="ghost-button export-link" href="/export/all.json">Gesamtexport</a>
+                <a class="ghost-button export-link" href="/export/monthly-km.json">Monatskilometer</a>
+                <a class="ghost-button export-link" href="/export/transactions.json">Ladevorgänge</a>
               </div>
             </section>
 
@@ -237,11 +238,12 @@
                 <h3><svg class="icon"><use href="/icons/material-symbols.svg#icon-upload"></use></svg><span>JSON-Import</span></h3>
                 <p class="muted">Importiert Gesamtexporte oder einzelne JSON-Datenstrukturen direkt im Browser</p>
               </div>
-              <form id="jsonImportForm" class="settings-form">
+              <form id="jsonImportForm" class="settings-form" action="/import/json" method="post">
                 <label class="field">
                   <span>JSON-Datei</span>
                   <input id="jsonImportInput" type="file" accept=".json,application/json" required />
                 </label>
+                <textarea id="jsonPayloadInput" name="payload" class="hidden"></textarea>
                 <div class="form-actions">
                   <button class="primary-button" type="submit">JSON importieren</button>
                 </div>
@@ -253,10 +255,10 @@
                 <h3><svg class="icon"><use href="/icons/material-symbols.svg#icon-csv"></use></svg><span>CSV-Import</span></h3>
                 <p class="muted">Tarifdateien werden auf relevante Felder für die App reduziert</p>
               </div>
-              <form id="csvImportForm" class="settings-form">
+              <form id="csvImportForm" class="settings-form" action="/import/csv" method="post">
                 <label class="field">
                   <span>Tarif</span>
-                  <select id="tariffSelect" required>
+                  <select id="tariffSelect" name="tariff" required>
                     <option value="mercedes-benz-public-charge">Mercedes Benz Public Charge</option>
                   </select>
                 </label>
@@ -264,6 +266,7 @@
                   <span>CSV-Datei</span>
                   <input id="csvImportInput" type="file" accept=".csv,text/csv" required />
                 </label>
+                <textarea id="csvTextInput" name="csvText" class="hidden"></textarea>
                 <div class="form-actions">
                   <button class="primary-button" type="submit">CSV importieren</button>
                 </div>

@@ -1,6 +1,14 @@
-const state = {
-  monthlyKm: {},
+const bootstrapElement = document.getElementById('bootstrap-data');
+const bootstrapState = bootstrapElement ? JSON.parse(bootstrapElement.textContent) : {
+  monthlyKilometers: {},
   transactions: [],
+  notice: '',
+  error: ''
+};
+
+const state = {
+  monthlyKm: bootstrapState.monthlyKilometers || {},
+  transactions: bootstrapState.transactions || [],
   range: 6,
   charts: {},
   deferredPrompt: null
@@ -29,6 +37,7 @@ const decimalFormatter = new Intl.NumberFormat('de-DE', {
 const toast = document.getElementById('toast');
 const monthlyKmForm = document.getElementById('monthlyKmForm');
 const transactionForm = document.getElementById('transactionForm');
+const monthInput = document.getElementById('monthInput');
 const monthlyKmTableBody = document.getElementById('monthlyKmTableBody');
 const transactionsTableBody = document.getElementById('transactionsTableBody');
 const monthSelect = document.getElementById('monthSelect');
@@ -42,7 +51,8 @@ const jsonImportForm = document.getElementById('jsonImportForm');
 const csvImportForm = document.getElementById('csvImportForm');
 const jsonImportInput = document.getElementById('jsonImportInput');
 const csvImportInput = document.getElementById('csvImportInput');
-const tariffSelect = document.getElementById('tariffSelect');
+const jsonPayloadInput = document.getElementById('jsonPayloadInput');
+const csvTextInput = document.getElementById('csvTextInput');
 const editorPanel = document.getElementById('editorPanel');
 const editorBackdrop = document.getElementById('editorBackdrop');
 const closeEditorButton = document.getElementById('closeEditorButton');
@@ -61,36 +71,17 @@ const editorPricePerKwh = document.getElementById('editorPricePerKwh');
 const editorFee = document.getElementById('editorFee');
 
 function showToast(message, variant = 'success') {
+  if (!message) {
+    return;
+  }
+
   toast.textContent = message;
   toast.className = `toast visible ${variant}`;
 
   window.clearTimeout(showToast.timeoutId);
   showToast.timeoutId = window.setTimeout(() => {
     toast.className = 'toast';
-  }, 2600);
-}
-
-async function requestJson(url, options = {}) {
-  const headers = { ...(options.headers || {}) };
-  if (!headers['Content-Type'] && options.body && !(options.body instanceof FormData)) {
-    headers['Content-Type'] = 'application/json';
-  }
-
-  const response = await fetch(url, {
-    headers,
-    ...options
-  });
-
-  if (!response.ok) {
-    const body = await response.json().catch(() => ({}));
-    throw new Error(body.error || 'Anfrage fehlgeschlagen.');
-  }
-
-  if (response.status === 204) {
-    return null;
-  }
-
-  return response.json();
+  }, 3200);
 }
 
 function openSettings() {
@@ -113,16 +104,22 @@ function closeEditor() {
   editorPanel.setAttribute('aria-hidden', 'true');
 }
 
-function downloadJson(filename, data) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
+function submitPost(url, fields) {
+  const form = document.createElement('form');
+  form.method = 'post';
+  form.action = url;
+  form.hidden = true;
+
+  Object.entries(fields).forEach(([key, value]) => {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = key;
+    input.value = value;
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
 }
 
 function formatMonthLabel(month) {
@@ -144,6 +141,45 @@ function formatDate(dateValue) {
   });
 }
 
+function buildMonthRange(monthsBack) {
+  const months = [];
+  const today = new Date();
+
+  for (let offset = monthsBack - 1; offset >= 0; offset -= 1) {
+    const current = new Date(today.getFullYear(), today.getMonth() - offset, 1);
+    months.push(`${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`);
+  }
+
+  return months;
+}
+
+function buildMonthlyStats(monthsBack) {
+  const months = buildMonthRange(monthsBack);
+  const transactionTotals = {};
+
+  state.transactions.forEach((transaction) => {
+    const month = String(transaction.date).slice(0, 7);
+    if (!transactionTotals[month]) {
+      transactionTotals[month] = { kwh: 0, cost: 0 };
+    }
+
+    transactionTotals[month].kwh += Number(transaction.kwh) || 0;
+    transactionTotals[month].cost += Number(transaction.totalCost) || 0;
+  });
+
+  return {
+    months,
+    energyPerMonth: months.map((month) => Number((transactionTotals[month]?.kwh || 0).toFixed(2))),
+    kilometersPerMonth: months.map((month) => Number((Number(state.monthlyKm[month]) || 0).toFixed(2))),
+    chargingCostPerMonth: months.map((month) => Number((transactionTotals[month]?.cost || 0).toFixed(2))),
+    costPer100Km: months.map((month) => {
+      const kilometers = Number(state.monthlyKm[month]) || 0;
+      const cost = transactionTotals[month]?.cost || 0;
+      return kilometers > 0 ? Number(((cost / kilometers) * 100).toFixed(2)) : null;
+    })
+  };
+}
+
 function populateMonthYearSelectors() {
   const months = Array.from({ length: 12 }, (_, index) => ({
     value: String(index + 1).padStart(2, '0'),
@@ -161,21 +197,11 @@ function populateMonthYearSelectors() {
 
   Object.keys(state.monthlyKm).forEach((month) => years.add(month.slice(0, 4)));
 
-  yearSelect.innerHTML = Array.from(years)
-    .sort()
-    .map((year) => `<option value="${year}">${year}</option>`)
-    .join('');
+  yearSelect.innerHTML = Array.from(years).sort().map((year) => `<option value="${year}">${year}</option>`).join('');
 }
 
 function getSelectedMonthValue() {
   return `${yearSelect.value}-${monthSelect.value}`;
-}
-
-function setSelectedMonthValue(month) {
-  const [year, monthPart] = month.split('-');
-  populateMonthYearSelectors();
-  yearSelect.value = year;
-  monthSelect.value = monthPart;
 }
 
 function renderMonthlyKmTable() {
@@ -231,7 +257,8 @@ function makeChart(canvasId, config) {
   state.charts[canvasId] = new Chart(ctx, config);
 }
 
-function renderCharts(stats) {
+function renderCharts() {
+  const stats = buildMonthlyStats(state.range);
   const labels = stats.months.map(formatMonthLabel);
   const commonOptions = {
     responsive: true,
@@ -355,70 +382,6 @@ function renderCharts(stats) {
   });
 }
 
-async function loadStats() {
-  const stats = await requestJson(`/api/stats?range=${state.range}`);
-  renderCharts(stats);
-}
-
-async function refreshData() {
-  const [monthlyKm, transactions] = await Promise.all([
-    requestJson('/api/monthly-km'),
-    requestJson('/api/transactions')
-  ]);
-
-  state.monthlyKm = monthlyKm;
-  state.transactions = transactions;
-
-  populateMonthYearSelectors();
-  renderMonthlyKmTable();
-  renderTransactionsTable();
-  await loadStats();
-}
-
-async function handleMonthlyKmSubmit(event) {
-  event.preventDefault();
-  const formData = new FormData(monthlyKmForm);
-  const month = getSelectedMonthValue();
-  const kilometers = formData.get('kilometers');
-
-  try {
-    await requestJson(`/api/monthly-km/${month}`, {
-      method: 'PUT',
-      body: JSON.stringify({ kilometers })
-    });
-
-    await refreshData();
-    showToast('Kilometer für den Monat gespeichert.');
-  } catch (error) {
-    showToast(error.message, 'error');
-  }
-}
-
-async function handleTransactionSubmit(event) {
-  event.preventDefault();
-  const formData = new FormData(transactionForm);
-  const payload = {
-    date: formData.get('date'),
-    kwh: formData.get('kwh'),
-    pricePerKwh: formData.get('pricePerKwh'),
-    fee: formData.get('fee')
-  };
-
-  try {
-    await requestJson('/api/transactions', {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    });
-
-    transactionForm.reset();
-    transactionForm.elements.date.valueAsDate = new Date();
-    await refreshData();
-    showToast('Ladevorgang gespeichert.');
-  } catch (error) {
-    showToast(error.message, 'error');
-  }
-}
-
 function openMonthlyEditor(month, kilometers) {
   editorType.value = 'monthly-km';
   editorMonthValue.value = month;
@@ -462,80 +425,35 @@ function handleTableClick(event) {
   }
 }
 
-async function handleEditorSubmit(event) {
+function handleEditorSubmit(event) {
   event.preventDefault();
 
-  try {
-    if (editorType.value === 'monthly-km') {
-      await requestJson(`/api/monthly-km/${editorMonthValue.value}`, {
-        method: 'PUT',
-        body: JSON.stringify({ kilometers: editorKilometers.value })
-      });
-    } else if (editorType.value === 'transaction') {
-      await requestJson(`/api/transactions/${editorId.value}`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          date: editorDate.value,
-          kwh: editorKwh.value,
-          pricePerKwh: editorPricePerKwh.value,
-          fee: editorFee.value
-        })
-      });
-    }
-
-    await refreshData();
-    closeEditor();
-    showToast('Eintrag gespeichert.');
-  } catch (error) {
-    showToast(error.message, 'error');
-  }
-}
-
-async function handleDeleteEntry() {
-  try {
-    if (editorType.value === 'monthly-km') {
-      await requestJson(`/api/monthly-km/${editorMonthValue.value}`, {
-        method: 'DELETE'
-      });
-    } else if (editorType.value === 'transaction') {
-      await requestJson(`/api/transactions/${editorId.value}`, {
-        method: 'DELETE'
-      });
-    }
-
-    await refreshData();
-    closeEditor();
-    showToast('Eintrag gelöscht.');
-  } catch (error) {
-    showToast(error.message, 'error');
-  }
-}
-
-async function handleSettingsClick(event) {
-  const exportButton = event.target.closest('[data-export]');
-  if (!exportButton) {
+  if (editorType.value === 'monthly-km') {
+    submitPost('/monthly-km', {
+      month: editorMonthValue.value,
+      kilometers: editorKilometers.value
+    });
     return;
   }
 
-  const exportType = exportButton.dataset.export;
-  const endpoint = exportType === 'all'
-    ? '/api/export/all'
-    : exportType === 'monthly-km'
-      ? '/api/export/monthly-km'
-      : '/api/export/transactions';
+  if (editorType.value === 'transaction') {
+    submitPost(`/transactions/${editorId.value}/update`, {
+      date: editorDate.value,
+      kwh: editorKwh.value,
+      pricePerKwh: editorPricePerKwh.value,
+      fee: editorFee.value
+    });
+  }
+}
 
-  const filename = exportType === 'all'
-    ? 'ladesaeule-export.json'
-    : exportType === 'monthly-km'
-      ? 'monthly-km.json'
-      : 'transactions.json';
+function handleDeleteEntry() {
+  if (editorType.value === 'monthly-km') {
+    submitPost(`/monthly-km/${editorMonthValue.value}/delete`, {});
+    return;
+  }
 
-  try {
-    const data = await requestJson(endpoint);
-    downloadJson(filename, data);
-    showToast('Export heruntergeladen.');
-  } catch (error) {
-    showToast(error.message, 'error');
+  if (editorType.value === 'transaction') {
+    submitPost(`/transactions/${editorId.value}/delete`, {});
   }
 }
 
@@ -548,20 +466,8 @@ async function handleJsonImport(event) {
     return;
   }
 
-  try {
-    const text = await file.text();
-    const payload = JSON.parse(text);
-    await requestJson('/api/import/json', {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    });
-
-    jsonImportForm.reset();
-    await refreshData();
-    showToast('JSON-Datei importiert.');
-  } catch (error) {
-    showToast(error.message || 'JSON-Import fehlgeschlagen.', 'error');
-  }
+  jsonPayloadInput.value = await file.text();
+  jsonImportForm.submit();
 }
 
 async function handleCsvImport(event) {
@@ -573,36 +479,17 @@ async function handleCsvImport(event) {
     return;
   }
 
-  try {
-    const csvText = await file.text();
-    const result = await requestJson(`/api/import/csv?tariff=${encodeURIComponent(tariffSelect.value)}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'text/plain'
-      },
-      body: csvText
-    });
-
-    csvImportForm.reset();
-    await refreshData();
-    showToast(`${result.added} Ladevorgänge importiert.`);
-  } catch (error) {
-    showToast(error.message || 'CSV-Import fehlgeschlagen.', 'error');
-  }
+  csvTextInput.value = await file.text();
+  csvImportForm.submit();
 }
 
 function setupRangeControls() {
   document.querySelectorAll('.range-chip').forEach((button) => {
-    button.addEventListener('click', async () => {
+    button.addEventListener('click', () => {
       document.querySelectorAll('.range-chip').forEach((chip) => chip.classList.remove('active'));
       button.classList.add('active');
       state.range = Number(button.dataset.range);
-
-      try {
-        await loadStats();
-      } catch (error) {
-        showToast(error.message, 'error');
-      }
+      renderCharts();
     });
   });
 }
@@ -636,7 +523,6 @@ function setupSettings() {
   settingsButton.addEventListener('click', openSettings);
   closeSettingsButton.addEventListener('click', closeSettings);
   settingsBackdrop.addEventListener('click', closeSettings);
-  settingsPanel.addEventListener('click', handleSettingsClick);
 }
 
 function setupEditor() {
@@ -651,16 +537,37 @@ function setDefaultDates() {
   populateMonthYearSelectors();
   yearSelect.value = String(currentDate.getFullYear());
   monthSelect.value = String(currentDate.getMonth() + 1).padStart(2, '0');
+  monthInput.value = getSelectedMonthValue();
   transactionForm.elements.date.valueAsDate = currentDate;
 }
 
-async function init() {
+function init() {
   setupRangeControls();
   setupInstallPrompt();
   setupSettings();
   setupEditor();
   registerServiceWorker();
   setDefaultDates();
+  renderMonthlyKmTable();
+  renderTransactionsTable();
+  renderCharts();
+
+  monthSelect.addEventListener('change', () => {
+    monthInput.value = getSelectedMonthValue();
+  });
+
+  yearSelect.addEventListener('change', () => {
+    monthInput.value = getSelectedMonthValue();
+  });
+
+  monthlyKmForm.addEventListener('submit', () => {
+    monthInput.value = getSelectedMonthValue();
+  });
+
+  jsonImportForm.addEventListener('submit', handleJsonImport);
+  csvImportForm.addEventListener('submit', handleCsvImport);
+  monthlyKmTableBody.addEventListener('click', handleTableClick);
+  transactionsTableBody.addEventListener('click', handleTableClick);
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
@@ -669,18 +576,8 @@ async function init() {
     }
   });
 
-  monthlyKmForm.addEventListener('submit', handleMonthlyKmSubmit);
-  transactionForm.addEventListener('submit', handleTransactionSubmit);
-  jsonImportForm.addEventListener('submit', handleJsonImport);
-  csvImportForm.addEventListener('submit', handleCsvImport);
-  monthlyKmTableBody.addEventListener('click', handleTableClick);
-  transactionsTableBody.addEventListener('click', handleTableClick);
-
-  try {
-    await refreshData();
-  } catch (error) {
-    showToast(error.message, 'error');
-  }
+  showToast(bootstrapState.notice, 'success');
+  showToast(bootstrapState.error, 'error');
 }
 
 init();

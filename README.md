@@ -1,6 +1,8 @@
 # Ladesaeule
 
-Schlichte Progressive Web App fuer einen Raspberry Pi mit Raspberry Pi OS. Die Anwendung erfasst monatliche Fahrleistung und einzelne Ladevorgaenge, speichert alles in JSON-Dateien und stellt die Daten ueber ein kleines Express-Backend bereit.
+![Ladesäule App-Logo](public/assets/applogo_ladesau.png)
+
+Schlichte Progressive Web App fuer einen Raspberry Pi mit Raspberry Pi OS. Die Anwendung erfasst monatliche Fahrleistung und einzelne Ladevorgaenge, speichert alles in JSON-Dateien und nutzt eine reine Weboberflaeche ohne separate API.
 
 ## Funktionen
 
@@ -15,7 +17,7 @@ Schlichte Progressive Web App fuer einen Raspberry Pi mit Raspberry Pi OS. Die A
 
 ## Architektur
 
-- `server.js`: Express-Server, statische Auslieferung und REST-API
+- `server.js`: Express-Server, statische Auslieferung und Formularaktionen
 - `lib/storage.js`: Erzeugt Datenverzeichnis und liest/schreibt JSON-Dateien
 - `lib/validation.js`: Validierung aller API-Eingaben
 - `lib/stats.js`: Monatliche Aggregationen fuer die Diagramme
@@ -64,27 +66,17 @@ Fehlende Dateien und Verzeichnisse werden beim Start automatisch erzeugt.
 
 ## Im lokalen Netzwerk aufrufen
 
-Der Server lauscht auf `0.0.0.0:1337`. Auf einem Raspberry Pi ist die App damit von anderen Geraeten im selben Netzwerk ueber die IP des Pi erreichbar, zum Beispiel:
-
-```text
-http://192.168.178.42:1337
-```
+Der Server lauscht auf `0.0.0.0:1337`. Auf einem Raspberry Pi ist die App damit von anderen Geraeten im selben Netzwerk ueber die IP des Pi erreichbar.
 
 Die IP-Adresse des Raspberry Pi laesst sich zum Beispiel mit `hostname -I` ermitteln.
 
-## API-Uebersicht
+## Webaktionen
 
-- `GET /api/monthly-km`
-- `PUT /api/monthly-km/:month`
-- `GET /api/transactions`
-- `POST /api/transactions`
-- `DELETE /api/transactions/:id`
-- `GET /api/stats?range=3|6|12`
-- `GET /api/export/all`
-- `GET /api/export/monthly-km`
-- `GET /api/export/transactions`
-- `POST /api/import/json`
-- `POST /api/import/csv?tariff=mercedes-benz-public-charge`
+- Formular fuer Monatskilometer
+- Formular fuer Ladevorgaenge
+- Browserbasierter JSON-Import
+- Browserbasierter CSV-Import
+- Direkte JSON-Downloads fuer Exporte
 
 ## PWA-Hinweise
 
