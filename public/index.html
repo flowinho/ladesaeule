@@ -31,6 +31,9 @@
           <button id="ultrawideButton" class="icon-button elevated-button" type="button" aria-label="Ultrawide-Modus umschalten">
             <svg class="icon"><use href="/icons/material-symbols.svg#icon-dashboard-layout"></use></svg>
           </button>
+          <button id="themeButton" class="icon-button elevated-button" type="button" aria-label="Theme wählen">
+            <svg class="icon"><use href="/icons/material-symbols.svg#icon-chart"></use></svg>
+          </button>
           <button id="settingsButton" class="icon-button elevated-button" type="button" aria-label="Einstellungen öffnen">
             <svg class="icon"><use href="/icons/material-symbols.svg#icon-settings"></use></svg>
           </button>
@@ -177,6 +180,25 @@
           </article>
         </section>
       </main>
+
+      <aside id="themePanel" class="settings-panel" aria-hidden="true">
+        <div id="themeBackdrop" class="settings-backdrop"></div>
+        <section class="settings-drawer theme-drawer card" role="dialog" aria-modal="true" aria-labelledby="themeTitle">
+          <div class="settings-header">
+            <div>
+              <p class="eyebrow">Darstellung</p>
+              <h2 id="themeTitle">Theme wählen</h2>
+            </div>
+            <button id="closeThemeButton" class="icon-button" type="button" aria-label="Theme-Dialog schließen">
+              <svg class="icon"><use href="/icons/material-symbols.svg#icon-close"></use></svg>
+            </button>
+          </div>
+          <div class="theme-content">
+            <p class="muted">Das gewählte Theme wird nur lokal in diesem Browser gespeichert.</p>
+            <div id="themeOptions" class="theme-options" role="radiogroup" aria-label="Verfügbare Themes"></div>
+          </div>
+        </section>
+      </aside>
 
       <aside id="settingsPanel" class="settings-panel" aria-hidden="true">
         <div id="settingsBackdrop" class="settings-backdrop"></div>

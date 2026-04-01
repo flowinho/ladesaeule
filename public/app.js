@@ -19,6 +19,14 @@ const state = {
   ultrawideEnabled: window.localStorage.getItem('ladeschweinle-ultrawide') === 'true'
 };
 
+const THEMES = {
+  dracula: { label: 'Dracula' },
+  things3: { label: 'Things 3' },
+  catppuccin: { label: 'Catppuccin' },
+  tomorrow: { label: 'Tomorrow' },
+  oledDark: { label: 'OLED Dark' }
+};
+
 const monthFormatter = new Intl.DateTimeFormat('de-DE', {
   month: 'long',
   year: 'numeric'
@@ -49,7 +57,12 @@ const addMonthlyKmButton = document.getElementById('addMonthlyKmButton');
 const addTransactionButton = document.getElementById('addTransactionButton');
 const installButton = document.getElementById('installButton');
 const ultrawideButton = document.getElementById('ultrawideButton');
+const themeButton = document.getElementById('themeButton');
 const settingsButton = document.getElementById('settingsButton');
+const themePanel = document.getElementById('themePanel');
+const themeBackdrop = document.getElementById('themeBackdrop');
+const closeThemeButton = document.getElementById('closeThemeButton');
+const themeOptions = document.getElementById('themeOptions');
 const settingsPanel = document.getElementById('settingsPanel');
 const closeSettingsButton = document.getElementById('closeSettingsButton');
 const settingsBackdrop = document.getElementById('settingsBackdrop');
@@ -79,6 +92,83 @@ const editorPricePerKwh = document.getElementById('editorPricePerKwh');
 const editorFee = document.getElementById('editorFee');
 const contentElement = document.querySelector('.content');
 const editorTitle = document.getElementById('editorTitle');
+const themeMetaTag = document.querySelector('meta[name="theme-color"]');
+
+state.theme = window.localStorage.getItem('ladeschweinle-theme') || 'dracula';
+
+function openThemeDialog() {
+  themePanel.classList.add('open');
+  themePanel.setAttribute('aria-hidden', 'false');
+}
+
+function closeThemeDialog() {
+  themePanel.classList.remove('open');
+  themePanel.setAttribute('aria-hidden', 'true');
+}
+
+function getThemeColorValue(variableName) {
+  return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+}
+
+function toAlphaColor(hexColor, alpha) {
+  const sanitized = hexColor.replace('#', '');
+  const color = sanitized.length === 3
+    ? sanitized.split('').map((part) => part + part).join('')
+    : sanitized;
+  const red = parseInt(color.slice(0, 2), 16);
+  const green = parseInt(color.slice(2, 4), 16);
+  const blue = parseInt(color.slice(4, 6), 16);
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+}
+
+function applyTheme(themeName) {
+  const resolvedTheme = Object.hasOwn(THEMES, themeName) ? themeName : 'dracula';
+  state.theme = resolvedTheme;
+  document.documentElement.setAttribute('data-theme', resolvedTheme);
+  window.localStorage.setItem('ladeschweinle-theme', resolvedTheme);
+
+  if (themeMetaTag) {
+    themeMetaTag.setAttribute('content', getThemeColorValue('--bg'));
+  }
+
+  themeOptions.querySelectorAll('button[data-theme]').forEach((button) => {
+    button.classList.toggle('active', button.dataset.theme === resolvedTheme);
+    button.setAttribute('aria-checked', String(button.dataset.theme === resolvedTheme));
+  });
+
+  if (Object.keys(state.charts).length) {
+    renderCharts();
+  }
+}
+
+function renderThemeOptions() {
+  themeOptions.innerHTML = Object.entries(THEMES)
+    .map(([value, theme]) => `
+      <button class="theme-choice-button" type="button" role="radio" data-theme="${value}" aria-checked="false">
+        <span>${theme.label}</span>
+      </button>
+    `)
+    .join('');
+}
+
+function setupThemes() {
+  renderThemeOptions();
+
+  themeButton.addEventListener('click', openThemeDialog);
+  closeThemeButton.addEventListener('click', closeThemeDialog);
+  themeBackdrop.addEventListener('click', closeThemeDialog);
+  themeOptions.addEventListener('click', (event) => {
+    const target = event.target.closest('[data-theme]');
+    if (!target) {
+      return;
+    }
+
+    applyTheme(target.dataset.theme);
+    closeThemeDialog();
+  });
+
+  applyTheme(state.theme);
+}
 
 function showToast(message, variant = 'success') {
   if (!message) {
@@ -331,16 +421,16 @@ function renderCharts() {
           display: false
         },
         ticks: {
-          color: '#627087'
+          color: getThemeColorValue('--muted')
         }
       },
       y: {
         beginAtZero: true,
         ticks: {
-          color: '#627087'
+          color: getThemeColorValue('--muted')
         },
         grid: {
-          color: 'rgba(98, 112, 135, 0.12)'
+          color: toAlphaColor(getThemeColorValue('--muted'), 0.2)
         }
       }
     }
@@ -352,7 +442,7 @@ function renderCharts() {
       labels,
       datasets: [{
         data: stats.energyPerMonth,
-        backgroundColor: 'rgba(47, 111, 237, 0.78)',
+        backgroundColor: toAlphaColor(getThemeColorValue('--chart-energy'), 0.8),
         borderRadius: 12,
         borderSkipped: false
       }]
@@ -366,8 +456,8 @@ function renderCharts() {
       labels,
       datasets: [{
         data: stats.kilometersPerMonth,
-        borderColor: '#188a54',
-        backgroundColor: 'rgba(24, 138, 84, 0.15)',
+        borderColor: getThemeColorValue('--chart-kilometers'),
+        backgroundColor: toAlphaColor(getThemeColorValue('--chart-kilometers'), 0.18),
         fill: true,
         tension: 0.35,
         pointRadius: 4,
@@ -383,8 +473,8 @@ function renderCharts() {
       labels,
       datasets: [{
         data: stats.costPer100Km,
-        borderColor: '#f08c2b',
-        backgroundColor: 'rgba(240, 140, 43, 0.14)',
+        borderColor: getThemeColorValue('--chart-cost'),
+        backgroundColor: toAlphaColor(getThemeColorValue('--chart-cost'), 0.18),
         fill: true,
         tension: 0.32,
         pointRadius: 4,
@@ -414,7 +504,7 @@ function renderCharts() {
       labels,
       datasets: [{
         data: stats.chargingCostPerMonth,
-        backgroundColor: 'rgba(28, 111, 166, 0.78)',
+        backgroundColor: toAlphaColor(getThemeColorValue('--chart-absolute-cost'), 0.8),
         borderRadius: 12,
         borderSkipped: false
       }]
@@ -440,8 +530,8 @@ function renderCharts() {
       labels,
       datasets: [{
         data: stats.avgCostPerKwhPerMonth,
-        borderColor: '#2556ba',
-        backgroundColor: 'rgba(37, 86, 186, 0.12)',
+        borderColor: getThemeColorValue('--chart-avg-kwh'),
+        backgroundColor: toAlphaColor(getThemeColorValue('--chart-avg-kwh'), 0.18),
         fill: true,
         tension: 0.32,
         pointRadius: 4,
@@ -471,8 +561,8 @@ function renderCharts() {
       labels,
       datasets: [{
         data: stats.consumptionPer100Km,
-        borderColor: '#6d7f2a',
-        backgroundColor: 'rgba(109, 127, 42, 0.14)',
+        borderColor: getThemeColorValue('--chart-consumption'),
+        backgroundColor: toAlphaColor(getThemeColorValue('--chart-consumption'), 0.18),
         fill: true,
         tension: 0.3,
         pointRadius: 4,
@@ -734,6 +824,7 @@ function setupEditor() {
 }
 
 function init() {
+  setupThemes();
   setupRangeControls();
   setupInstallPrompt();
   setupSettings();
@@ -777,6 +868,7 @@ function init() {
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
+      closeThemeDialog();
       closeSettings();
       closeEditor();
     }
