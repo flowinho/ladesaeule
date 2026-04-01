@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#2f6fed" />
+    <meta name="description" content="PWA zum Erfassen von Fahrleistung und Ladevorgängen." />
+    <title>Ladesäule</title>
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.svg" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <svg class="icon-sprite" aria-hidden="true">
+      <use href="/icons/material-symbols.svg#icon-placeholder"></use>
+    </svg>
+    <div class="app-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Elektrofahrzeug</p>
+          <div class="hero-title-row">
+            <span class="brand-mark" aria-hidden="true">
+              <svg class="icon icon-lg"><use href="/icons/material-symbols.svg#icon-bolt"></use></svg>
+            </span>
+            <h1>Ladesäule</h1>
+          </div>
+          <p class="hero-copy">Monatliche Fahrleistung, Ladevorgänge und Kosten pro 100 km auf einen Blick.</p>
+        </div>
+        <div class="hero-actions">
+          <button id="settingsButton" class="icon-button elevated-button" type="button" aria-label="Einstellungen öffnen">
+            <svg class="icon"><use href="/icons/material-symbols.svg#icon-settings"></use></svg>
+          </button>
+          <button id="installButton" class="install-button hidden" type="button">
+            <svg class="icon"><use href="/icons/material-symbols.svg#icon-download"></use></svg>
+            <span>App installieren</span>
+          </button>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="dashboard card">
+          <div class="section-heading">
+            <div>
+              <h2>Dashboard</h2>
+              <p class="muted">Übersicht für die letzten Monate</p>
+            </div>
+            <div class="section-badge">
+              <svg class="icon"><use href="/icons/material-symbols.svg#icon-chart"></use></svg>
+              <span>Live</span>
+            </div>
+            <div class="range-switch" aria-label="Zeitraum wählen">
+              <button class="range-chip active" type="button" data-range="3">3 Monate</button>
+              <button class="range-chip" type="button" data-range="6">6 Monate</button>
+              <button class="range-chip" type="button" data-range="12">12 Monate</button>
+            </div>
+          </div>
+
+          <div class="chart-grid">
+            <article class="chart-card">
+              <div class="chart-header">
+                <h3><svg class="icon"><use href="/icons/material-symbols.svg#icon-bolt"></use></svg><span>Geladene Energie</span></h3>
+                <span class="chart-unit">kWh pro Monat</span>
+              </div>
+              <canvas id="energyChart"></canvas>
+            </article>
+
+            <article class="chart-card">
+              <div class="chart-header">
+                <h3><svg class="icon"><use href="/icons/material-symbols.svg#icon-car"></use></svg><span>Gefahrene Kilometer</span></h3>
+                <span class="chart-unit">km pro Monat</span>
+              </div>
+              <canvas id="kilometersChart"></canvas>
+            </article>
+
+            <article class="chart-card">
+              <div class="chart-header">
+                <h3><svg class="icon"><use href="/icons/material-symbols.svg#icon-euro"></use></svg><span>Kosten pro 100 km</span></h3>
+                <span class="chart-unit">EUR / 100 km</span>
+              </div>
+              <canvas id="costChart"></canvas>
+            </article>
+
+            <article class="chart-card">
+              <div class="chart-header">
+                <h3><svg class="icon"><use href="/icons/material-symbols.svg#icon-receipt"></use></svg><span>Absolute Kosten</span></h3>
+                <span class="chart-unit">EUR pro Monat</span>
+              </div>
+              <canvas id="absoluteCostChart"></canvas>
+            </article>
+          </div>
+        </section>
+
+        <section class="cards-grid">
+          <article class="card">
+            <div class="section-heading">
+              <div>
+                <h2><svg class="icon"><use href="/icons/material-symbols.svg#icon-edit"></use></svg><span>Monatliche Kilometer</span></h2>
+                <p class="muted">Ein Wert pro Monat</p>
+              </div>
+            </div>
+            <form id="monthlyKmForm" class="form-grid">
+              <div class="field month-picker-group">
+                <span>Monat auswählen</span>
+                <div class="month-picker">
+                  <label class="field month-picker-field">
+                    <span>Monat</span>
+                    <select id="monthSelect" name="monthSelect" required></select>
+                  </label>
+                  <label class="field month-picker-field">
+                    <span>Jahr</span>
+                    <select id="yearSelect" name="yearSelect" required></select>
+                  </label>
+                </div>
+              </div>
+
+              <label class="field">
+                <span>Kilometer</span>
+                <input id="kilometersInput" name="kilometers" type="number" min="0" step="0.1" placeholder="z. B. 842" required />
+              </label>
+
+              <div class="form-actions">
+                <button class="primary-button" type="submit">Monat speichern</button>
+              </div>
+            </form>
+          </article>
+
+          <article class="card">
+            <div class="section-heading">
+              <div>
+                <h2><svg class="icon"><use href="/icons/material-symbols.svg#icon-charging"></use></svg><span>Ladevorgang erfassen</span></h2>
+                <p class="muted">Kosten werden automatisch berechnet</p>
+              </div>
+            </div>
+            <form id="transactionForm" class="form-grid">
+              <label class="field">
+                <span>Datum</span>
+                <input name="date" type="date" required />
+              </label>
+
+              <label class="field">
+                <span>Geladene Energie (kWh)</span>
+                <input name="kwh" type="number" min="0" step="0.01" placeholder="z. B. 31.5" required />
+              </label>
+
+              <label class="field">
+                <span>Preis pro kWh (EUR)</span>
+                <input name="pricePerKwh" type="number" min="0" step="0.001" placeholder="z. B. 0.49" required />
+              </label>
+
+              <label class="field">
+                <span>Zusatzgebühr (optional, EUR)</span>
+                <input name="fee" type="number" min="0" step="0.01" placeholder="0.00" />
+              </label>
+
+              <div class="form-actions">
+                <button class="primary-button floating-button" type="submit">Ladevorgang speichern</button>
+              </div>
+            </form>
+          </article>
+
+          <article class="card">
+            <div class="section-heading">
+              <div>
+                <h2><svg class="icon"><use href="/icons/material-symbols.svg#icon-list"></use></svg><span>Monatsübersicht Kilometer</span></h2>
+                <p class="muted">Vorhandene Werte lassen sich komfortabel bearbeiten</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Monat</th>
+                    <th>Kilometer</th>
+                    <th>Aktion</th>
+                  </tr>
+                </thead>
+                <tbody id="monthlyKmTableBody"></tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="section-heading">
+              <div>
+                <h2><svg class="icon"><use href="/icons/material-symbols.svg#icon-receipt"></use></svg><span>Ladevorgänge</span></h2>
+                <p class="muted">Sortiert nach Datum</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Datum</th>
+                    <th>kWh</th>
+                    <th>Preis / kWh</th>
+                    <th>Gebühr</th>
+                    <th>Gesamt</th>
+                    <th>Aktion</th>
+                  </tr>
+                </thead>
+                <tbody id="transactionsTableBody"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+      </main>
+
+      <aside id="settingsPanel" class="settings-panel" aria-hidden="true">
+        <div id="settingsBackdrop" class="settings-backdrop"></div>
+        <section class="settings-drawer card" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+          <div class="settings-header">
+            <div>
+              <p class="eyebrow">Verwaltung</p>
+              <h2 id="settingsTitle">Einstellungen</h2>
+            </div>
+            <button id="closeSettingsButton" class="icon-button" type="button" aria-label="Einstellungen schließen">
+              <svg class="icon"><use href="/icons/material-symbols.svg#icon-close"></use></svg>
+            </button>
+          </div>
+
+          <div class="settings-content">
+            <section class="settings-card">
+              <div class="settings-card-header">
+                <h3><svg class="icon"><use href="/icons/material-symbols.svg#icon-download"></use></svg><span>JSON-Export</span></h3>
+                <p class="muted">Komplette Sicherung oder einzelne Datenbestände herunterladen</p>
+              </div>
+              <div class="settings-actions">
+                <button class="ghost-button" type="button" data-export="all">Gesamtexport</button>
+                <button class="ghost-button" type="button" data-export="monthly-km">Monatskilometer</button>
+                <button class="ghost-button" type="button" data-export="transactions">Ladevorgänge</button>
+              </div>
+            </section>
+
+            <section class="settings-card">
+              <div class="settings-card-header">
+                <h3><svg class="icon"><use href="/icons/material-symbols.svg#icon-upload"></use></svg><span>JSON-Import</span></h3>
+                <p class="muted">Importiert Gesamtexporte oder einzelne JSON-Datenstrukturen direkt im Browser</p>
+              </div>
+              <form id="jsonImportForm" class="settings-form">
+                <label class="field">
+                  <span>JSON-Datei</span>
+                  <input id="jsonImportInput" type="file" accept=".json,application/json" required />
+                </label>
+                <div class="form-actions">
+                  <button class="primary-button" type="submit">JSON importieren</button>
+                </div>
+              </form>
+            </section>
+
+            <section class="settings-card">
+              <div class="settings-card-header">
+                <h3><svg class="icon"><use href="/icons/material-symbols.svg#icon-csv"></use></svg><span>CSV-Import</span></h3>
+                <p class="muted">Tarifdateien werden auf relevante Felder für die App reduziert</p>
+              </div>
+              <form id="csvImportForm" class="settings-form">
+                <label class="field">
+                  <span>Tarif</span>
+                  <select id="tariffSelect" required>
+                    <option value="mercedes-benz-public-charge">Mercedes Benz Public Charge</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>CSV-Datei</span>
+                  <input id="csvImportInput" type="file" accept=".csv,text/csv" required />
+                </label>
+                <div class="form-actions">
+                  <button class="primary-button" type="submit">CSV importieren</button>
+                </div>
+              </form>
+            </section>
+          </div>
+        </section>
+      </aside>
+
+      <aside id="editorPanel" class="settings-panel" aria-hidden="true">
+        <div id="editorBackdrop" class="settings-backdrop"></div>
+        <section class="settings-drawer editor-drawer card" role="dialog" aria-modal="true" aria-labelledby="editorTitle">
+          <div class="settings-header">
+            <div>
+              <p class="eyebrow">Bearbeiten</p>
+              <h2 id="editorTitle">Eintrag</h2>
+            </div>
+            <button id="closeEditorButton" class="icon-button" type="button" aria-label="Bearbeiten schließen">
+              <svg class="icon"><use href="/icons/material-symbols.svg#icon-close"></use></svg>
+            </button>
+          </div>
+
+          <form id="editorForm" class="settings-form">
+            <input id="editorType" type="hidden" />
+            <input id="editorId" type="hidden" />
+            <input id="editorMonthValue" type="hidden" />
+
+            <div id="monthlyEditorFields" class="editor-fields hidden">
+              <label class="field">
+                <span>Monat</span>
+                <input id="editorMonthLabel" type="text" readonly />
+              </label>
+              <label class="field">
+                <span>Kilometer</span>
+                <input id="editorKilometers" type="number" min="0" step="0.1" required />
+              </label>
+            </div>
+
+            <div id="transactionEditorFields" class="editor-fields hidden">
+              <label class="field">
+                <span>Datum</span>
+                <input id="editorDate" type="date" />
+              </label>
+              <label class="field">
+                <span>Geladene Energie (kWh)</span>
+                <input id="editorKwh" type="number" min="0" step="0.01" />
+              </label>
+              <label class="field">
+                <span>Preis pro kWh (EUR)</span>
+                <input id="editorPricePerKwh" type="number" min="0" step="0.001" />
+              </label>
+              <label class="field">
+                <span>Zusatzgebühr (optional, EUR)</span>
+                <input id="editorFee" type="number" min="0" step="0.01" />
+              </label>
+            </div>
+
+            <div class="editor-actions">
+              <button id="deleteEntryButton" class="ghost-button danger" type="button">
+                <svg class="icon"><use href="/icons/material-symbols.svg#icon-delete"></use></svg>
+                <span>Löschen</span>
+              </button>
+              <button class="primary-button" type="submit">
+                <svg class="icon"><use href="/icons/material-symbols.svg#icon-save"></use></svg>
+                <span>Speichern</span>
+              </button>
+            </div>
+          </form>
+        </section>
+      </aside>
+
+      <div id="toast" class="toast" aria-live="polite"></div>
+    </div>
+
+    <script src="/vendor/chart/chart.umd.js"></script>
+    <script src="/app.js" defer></script>
+  </body>
+</html>

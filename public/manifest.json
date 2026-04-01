@@ -1,0 +1,23 @@
+{
+  "name": "Ladesaeule",
+  "short_name": "Ladesaeule",
+  "description": "PWA fuer Fahrleistung und Ladevorgaenge.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#eef3fb",
+  "theme_color": "#2f6fed",
+  "lang": "de-DE",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icons/maskable-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

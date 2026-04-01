@@ -1,0 +1,14 @@
+{
+  "name": "ladesaeule",
+  "version": "1.0.0",
+  "description": "Schlichte PWA zur Erfassung von Fahrleistung und Ladevorgaengen",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "chart.js": "^4.5.1",
+    "express": "^4.21.2"
+  }
+}
