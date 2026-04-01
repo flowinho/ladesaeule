@@ -94,7 +94,7 @@ const contentElement = document.querySelector('.content');
 const editorTitle = document.getElementById('editorTitle');
 const themeMetaTag = document.querySelector('meta[name="theme-color"]');
 
-state.theme = window.localStorage.getItem('ladeschweinle-theme') || 'dracula';
+state.theme = window.localStorage.getItem('ladeschweinle-theme') || 'things3';
 
 function openThemeDialog() {
   themePanel.classList.add('open');
@@ -122,7 +122,7 @@ function toAlphaColor(hexColor, alpha) {
 }
 
 function applyTheme(themeName) {
-  const resolvedTheme = Object.hasOwn(THEMES, themeName) ? themeName : 'dracula';
+  const resolvedTheme = Object.hasOwn(THEMES, themeName) ? themeName : 'things3';
   state.theme = resolvedTheme;
   document.documentElement.setAttribute('data-theme', resolvedTheme);
   window.localStorage.setItem('ladeschweinle-theme', resolvedTheme);

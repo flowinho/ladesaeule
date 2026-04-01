@@ -4,8 +4,8 @@
   "description": "PWA fuer Fahrleistung und Ladevorgaenge.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#eef3fb",
-  "theme_color": "#2f6fed",
+  "background_color": "#f4f5f7",
+  "theme_color": "#f4f5f7",
   "lang": "de-DE",
   "icons": [
     {
