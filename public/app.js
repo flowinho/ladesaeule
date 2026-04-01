@@ -375,6 +375,11 @@ function buildMonthlyStats(monthsBack) {
 
       return transactionTotals[month]?.stops || 0;
     }),
+    rangePerStopPerMonth: months.map((month) => {
+      const kilometers = getMonthlyKilometersValue(month);
+      const stops = transactionTotals[month]?.stops || 0;
+      return stops > 0 && kilometers > 0 ? Number((kilometers / stops).toFixed(2)) : null;
+    }),
     avgCostPerKwhPerMonth: months.map((month) => {
       const energy = transactionTotals[month]?.kwh || 0;
       const cost = transactionTotals[month]?.cost || 0;
@@ -432,6 +437,9 @@ function buildSummaryStats() {
   const currentEnergy = monthlyTransactionTotals[currentMonth]?.kwh || 0;
   const currentCost = monthlyTransactionTotals[currentMonth]?.cost || 0;
   const currentStops = monthlyTransactionTotals[currentMonth]?.stops || 0;
+  const currentRangePerStop = currentStops > 0 && currentKilometers > 0
+    ? Number((currentKilometers / currentStops).toFixed(2))
+    : null;
   const currentCostPer100Km = currentKilometers > 0 ? Number(((currentCost / currentKilometers) * 100).toFixed(2)) : null;
   const currentAvgCostPerKwh = currentEnergy > 0 ? Number((currentCost / currentEnergy).toFixed(3)) : null;
   const currentConsumption = currentKilometers > 0 ? Number(((currentEnergy / currentKilometers) * 100).toFixed(2)) : null;
@@ -492,6 +500,18 @@ function buildSummaryStats() {
       average: averageValues(energyMonths.map((month) => monthlyTransactionTotals[month]?.stops || 0)),
       current: currentStops,
       formatter: (value) => `${decimalFormatter.format(value)} Stops`
+    },
+    {
+      key: 'range-per-stop',
+      label: 'Reichweite pro Ladestop',
+      icon: 'icon-car',
+      average: averageValues(kilometerMonths.map((month) => {
+        const kilometers = getMonthlyKilometersValue(month);
+        const stops = monthlyTransactionTotals[month]?.stops || 0;
+        return stops > 0 && kilometers > 0 ? Number((kilometers / stops).toFixed(2)) : null;
+      })),
+      current: currentRangePerStop,
+      formatter: (value) => `${decimalFormatter.format(value)} km / Stop`
     },
     {
       key: 'consumption',
@@ -851,6 +871,37 @@ function renderCharts() {
           callbacks: {
             label(context) {
               return `${decimalFormatter.format(context.raw)} Stops`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  makeChart('rangePerStopChart', {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: stats.rangePerStopPerMonth,
+        borderColor: getThemeColorValue('--info'),
+        backgroundColor: toAlphaColor(getThemeColorValue('--info'), 0.18),
+        fill: true,
+        tension: 0.3,
+        pointRadius: 4,
+        pointHoverRadius: 5,
+        spanGaps: true
+      }]
+    },
+    options: {
+      ...commonOptions,
+      plugins: {
+        ...commonOptions.plugins,
+        tooltip: {
+          callbacks: {
+            label(context) {
+              const value = context.raw;
+              return value === null ? 'Keine Daten' : `${decimalFormatter.format(value)} km / Stop`;
             }
           }
         }
