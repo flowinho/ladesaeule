@@ -318,9 +318,10 @@ function buildMonthlyStats(monthsBack) {
   };
 }
 
-function getCurrentMonthKey() {
+function getLastMonthKey() {
   const currentDate = new Date();
-  return `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+  const lastMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+  return `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}`;
 }
 
 function averageValues(values) {
@@ -350,7 +351,7 @@ function buildSummaryStats() {
 
   const kilometerMonths = Object.keys(state.monthlyKm);
   const energyMonths = Object.keys(monthlyTransactionTotals);
-  const currentMonth = getCurrentMonthKey();
+  const currentMonth = getLastMonthKey();
   const currentKilometers = Number(state.monthlyKm[currentMonth]) || 0;
   const currentEnergy = monthlyTransactionTotals[currentMonth]?.kwh || 0;
   const currentCost = monthlyTransactionTotals[currentMonth]?.cost || 0;
@@ -439,7 +440,7 @@ function getSummaryTrendClass(average, current) {
 }
 
 function renderSummaryMetrics() {
-  const currentMonthLabel = formatMonthLong(getCurrentMonthKey());
+  const currentMonthLabel = formatMonthLong(getLastMonthKey());
   const metrics = buildSummaryStats();
 
   summaryMetrics.innerHTML = metrics.map((metric) => {
