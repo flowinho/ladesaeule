@@ -11,7 +11,12 @@ const state = {
   transactions: bootstrapState.transactions || [],
   range: 6,
   charts: {},
-  deferredPrompt: null
+  deferredPrompt: null,
+  filters: {
+    monthlyKmYear: 'all',
+    transactionsMonth: 'all'
+  },
+  ultrawideEnabled: window.localStorage.getItem('ladeschweinle-ultrawide') === 'true'
 };
 
 const monthFormatter = new Intl.DateTimeFormat('de-DE', {
@@ -35,14 +40,15 @@ const decimalFormatter = new Intl.NumberFormat('de-DE', {
 });
 
 const toast = document.getElementById('toast');
-const monthlyKmForm = document.getElementById('monthlyKmForm');
-const transactionForm = document.getElementById('transactionForm');
-const monthInput = document.getElementById('monthInput');
+const appShellElement = document.querySelector('.app-shell');
 const monthlyKmTableBody = document.getElementById('monthlyKmTableBody');
 const transactionsTableBody = document.getElementById('transactionsTableBody');
-const monthSelect = document.getElementById('monthSelect');
-const yearSelect = document.getElementById('yearSelect');
+const monthlyKmFilter = document.getElementById('monthlyKmFilter');
+const transactionsFilter = document.getElementById('transactionsFilter');
+const addMonthlyKmButton = document.getElementById('addMonthlyKmButton');
+const addTransactionButton = document.getElementById('addTransactionButton');
 const installButton = document.getElementById('installButton');
+const ultrawideButton = document.getElementById('ultrawideButton');
 const settingsButton = document.getElementById('settingsButton');
 const settingsPanel = document.getElementById('settingsPanel');
 const closeSettingsButton = document.getElementById('closeSettingsButton');
@@ -59,16 +65,20 @@ const closeEditorButton = document.getElementById('closeEditorButton');
 const editorForm = document.getElementById('editorForm');
 const deleteEntryButton = document.getElementById('deleteEntryButton');
 const editorType = document.getElementById('editorType');
+const editorMode = document.getElementById('editorMode');
 const editorId = document.getElementById('editorId');
 const editorMonthValue = document.getElementById('editorMonthValue');
 const monthlyEditorFields = document.getElementById('monthlyEditorFields');
 const transactionEditorFields = document.getElementById('transactionEditorFields');
-const editorMonthLabel = document.getElementById('editorMonthLabel');
+const editorMonthSelect = document.getElementById('editorMonthSelect');
+const editorYearSelect = document.getElementById('editorYearSelect');
 const editorKilometers = document.getElementById('editorKilometers');
 const editorDate = document.getElementById('editorDate');
 const editorKwh = document.getElementById('editorKwh');
 const editorPricePerKwh = document.getElementById('editorPricePerKwh');
 const editorFee = document.getElementById('editorFee');
+const contentElement = document.querySelector('.content');
+const editorTitle = document.getElementById('editorTitle');
 
 function showToast(message, variant = 'success') {
   if (!message) {
@@ -82,6 +92,33 @@ function showToast(message, variant = 'success') {
   showToast.timeoutId = window.setTimeout(() => {
     toast.className = 'toast';
   }, 3200);
+}
+
+function getAvailableMonthlyKmYears() {
+  return Array.from(new Set(Object.keys(state.monthlyKm).map((month) => month.slice(0, 4)))).sort((a, b) => b.localeCompare(a));
+}
+
+function getAvailableTransactionMonths() {
+  return Array.from(new Set(state.transactions.map((transaction) => String(transaction.date).slice(0, 7)))).sort((a, b) => b.localeCompare(a));
+}
+
+function renderFilters() {
+  const years = getAvailableMonthlyKmYears();
+  const months = getAvailableTransactionMonths();
+
+  monthlyKmFilter.innerHTML = ['<option value="all">Alle Jahre</option>', ...years.map((year) => `<option value="${year}">${year}</option>`)].join('');
+  transactionsFilter.innerHTML = ['<option value="all">Alle Monate</option>', ...months.map((month) => `<option value="${month}">${formatMonthLong(month)}</option>`)].join('');
+
+  if (!years.includes(state.filters.monthlyKmYear)) {
+    state.filters.monthlyKmYear = 'all';
+  }
+
+  if (!months.includes(state.filters.transactionsMonth)) {
+    state.filters.transactionsMonth = 'all';
+  }
+
+  monthlyKmFilter.value = state.filters.monthlyKmYear;
+  transactionsFilter.value = state.filters.transactionsMonth;
 }
 
 function openSettings() {
@@ -172,6 +209,16 @@ function buildMonthlyStats(monthsBack) {
     energyPerMonth: months.map((month) => Number((transactionTotals[month]?.kwh || 0).toFixed(2))),
     kilometersPerMonth: months.map((month) => Number((Number(state.monthlyKm[month]) || 0).toFixed(2))),
     chargingCostPerMonth: months.map((month) => Number((transactionTotals[month]?.cost || 0).toFixed(2))),
+    avgCostPerKwhPerMonth: months.map((month) => {
+      const energy = transactionTotals[month]?.kwh || 0;
+      const cost = transactionTotals[month]?.cost || 0;
+      return energy > 0 ? Number((cost / energy).toFixed(3)) : null;
+    }),
+    consumptionPer100Km: months.map((month) => {
+      const energy = transactionTotals[month]?.kwh || 0;
+      const kilometers = Number(state.monthlyKm[month]) || 0;
+      return kilometers > 0 ? Number(((energy / kilometers) * 100).toFixed(2)) : null;
+    }),
     costPer100Km: months.map((month) => {
       const kilometers = Number(state.monthlyKm[month]) || 0;
       const cost = transactionTotals[month]?.cost || 0;
@@ -180,13 +227,13 @@ function buildMonthlyStats(monthsBack) {
   };
 }
 
-function populateMonthYearSelectors() {
+function populateMonthYearSelectors(monthSelectElement, yearSelectElement) {
   const months = Array.from({ length: 12 }, (_, index) => ({
     value: String(index + 1).padStart(2, '0'),
     label: new Intl.DateTimeFormat('de-DE', { month: 'long' }).format(new Date(2026, index, 1))
   }));
 
-  monthSelect.innerHTML = months.map((month) => `<option value="${month.value}">${month.label}</option>`).join('');
+  monthSelectElement.innerHTML = months.map((month) => `<option value="${month.value}">${month.label}</option>`).join('');
 
   const years = new Set();
   const currentYear = new Date().getFullYear();
@@ -197,15 +244,17 @@ function populateMonthYearSelectors() {
 
   Object.keys(state.monthlyKm).forEach((month) => years.add(month.slice(0, 4)));
 
-  yearSelect.innerHTML = Array.from(years).sort().map((year) => `<option value="${year}">${year}</option>`).join('');
+  yearSelectElement.innerHTML = Array.from(years).sort().map((year) => `<option value="${year}">${year}</option>`).join('');
 }
 
-function getSelectedMonthValue() {
-  return `${yearSelect.value}-${monthSelect.value}`;
+function getSelectedMonthValue(monthSelectElement, yearSelectElement) {
+  return `${yearSelectElement.value}-${monthSelectElement.value}`;
 }
 
 function renderMonthlyKmTable() {
-  const entries = Object.entries(state.monthlyKm).sort((a, b) => b[0].localeCompare(a[0]));
+  const entries = Object.entries(state.monthlyKm)
+    .filter(([month]) => state.filters.monthlyKmYear === 'all' || month.startsWith(`${state.filters.monthlyKmYear}-`))
+    .sort((a, b) => b[0].localeCompare(a[0]));
 
   if (!entries.length) {
     monthlyKmTableBody.innerHTML = '<tr><td colspan="3" class="empty-state">Noch keine Kilometerdaten vorhanden.</td></tr>';
@@ -226,12 +275,16 @@ function renderMonthlyKmTable() {
 }
 
 function renderTransactionsTable() {
-  if (!state.transactions.length) {
+  const visibleTransactions = state.transactions.filter((transaction) => (
+    state.filters.transactionsMonth === 'all' || String(transaction.date).slice(0, 7) === state.filters.transactionsMonth
+  ));
+
+  if (!visibleTransactions.length) {
     transactionsTableBody.innerHTML = '<tr><td colspan="6" class="empty-state">Noch keine Ladevorgänge vorhanden.</td></tr>';
     return;
   }
 
-  transactionsTableBody.innerHTML = state.transactions.map((transaction) => `
+  transactionsTableBody.innerHTML = visibleTransactions.map((transaction) => `
     <tr>
       <td data-label="Datum">${formatDate(transaction.date)}</td>
       <td data-label="kWh">${decimalFormatter.format(transaction.kwh)}</td>
@@ -380,15 +433,148 @@ function renderCharts() {
       }
     }
   });
+
+  makeChart('avgCostPerKwhChart', {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: stats.avgCostPerKwhPerMonth,
+        borderColor: '#2556ba',
+        backgroundColor: 'rgba(37, 86, 186, 0.12)',
+        fill: true,
+        tension: 0.32,
+        pointRadius: 4,
+        pointHoverRadius: 5,
+        spanGaps: true
+      }]
+    },
+    options: {
+      ...commonOptions,
+      plugins: {
+        ...commonOptions.plugins,
+        tooltip: {
+          callbacks: {
+            label(context) {
+              const value = context.raw;
+              return value === null ? 'Keine Ladedaten' : `${currencyFormatter.format(value)} / kWh`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  makeChart('consumptionPer100KmChart', {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: stats.consumptionPer100Km,
+        borderColor: '#6d7f2a',
+        backgroundColor: 'rgba(109, 127, 42, 0.14)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 4,
+        pointHoverRadius: 5,
+        spanGaps: true
+      }]
+    },
+    options: {
+      ...commonOptions,
+      plugins: {
+        ...commonOptions.plugins,
+        tooltip: {
+          callbacks: {
+            label(context) {
+              const value = context.raw;
+              return value === null ? 'Keine Kilometerdaten' : `${decimalFormatter.format(value)} kWh / 100 km`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function applyUltrawideMode() {
+  const canUseUltrawide = window.innerWidth >= 1600;
+  const active = canUseUltrawide && state.ultrawideEnabled;
+
+  appShellElement.classList.toggle('ultrawide-active', active);
+  contentElement.classList.toggle('ultrawide-active', active);
+  ultrawideButton.classList.toggle('active', active);
+  ultrawideButton.disabled = !canUseUltrawide;
+  ultrawideButton.setAttribute('aria-pressed', String(active));
+
+  if (!canUseUltrawide) {
+    appShellElement.classList.remove('ultrawide-active');
+    contentElement.classList.remove('ultrawide-active');
+  }
+}
+
+function setEditorHeading(mode, type) {
+  const labels = {
+    'monthly-km': mode === 'create' ? 'Monat hinzufügen' : 'Monat bearbeiten',
+    transaction: mode === 'create' ? 'Ladevorgang hinzufügen' : 'Ladevorgang bearbeiten'
+  };
+
+  editorTitle.textContent = labels[type] || 'Eintrag';
+}
+
+function populateEditorMonth(month) {
+  const [year, monthPart] = month.split('-');
+  editorYearSelect.value = year;
+  editorMonthSelect.value = monthPart;
+  editorMonthValue.value = month;
+}
+
+function syncEditorMonthValue() {
+  editorMonthValue.value = getSelectedMonthValue(editorMonthSelect, editorYearSelect);
+}
+
+function openCreateMonthlyEditor() {
+  const currentDate = new Date();
+
+  editorType.value = 'monthly-km';
+  editorMode.value = 'create';
+  editorId.value = '';
+  editorKilometers.value = '';
+  monthlyEditorFields.classList.remove('hidden');
+  transactionEditorFields.classList.add('hidden');
+  setEditorHeading('create', 'monthly-km');
+  populateEditorMonth(`${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`);
+  deleteEntryButton.classList.add('hidden');
+  openEditor();
 }
 
 function openMonthlyEditor(month, kilometers) {
   editorType.value = 'monthly-km';
-  editorMonthValue.value = month;
-  editorMonthLabel.value = formatMonthLong(month);
+  editorMode.value = 'edit';
+  editorId.value = '';
+  populateEditorMonth(month);
   editorKilometers.value = kilometers;
   monthlyEditorFields.classList.remove('hidden');
   transactionEditorFields.classList.add('hidden');
+  setEditorHeading('edit', 'monthly-km');
+  deleteEntryButton.classList.remove('hidden');
+  openEditor();
+}
+
+function openCreateTransactionEditor() {
+  const currentDate = new Date();
+
+  editorType.value = 'transaction';
+  editorMode.value = 'create';
+  editorId.value = '';
+  editorDate.value = currentDate.toISOString().slice(0, 10);
+  editorKwh.value = '';
+  editorPricePerKwh.value = '';
+  editorFee.value = '';
+  monthlyEditorFields.classList.add('hidden');
+  transactionEditorFields.classList.remove('hidden');
+  setEditorHeading('create', 'transaction');
+  deleteEntryButton.classList.add('hidden');
   openEditor();
 }
 
@@ -399,6 +585,7 @@ function openTransactionEditor(transactionId) {
   }
 
   editorType.value = 'transaction';
+  editorMode.value = 'edit';
   editorId.value = transaction.id;
   editorDate.value = transaction.date;
   editorKwh.value = transaction.kwh;
@@ -406,6 +593,8 @@ function openTransactionEditor(transactionId) {
   editorFee.value = transaction.fee;
   monthlyEditorFields.classList.add('hidden');
   transactionEditorFields.classList.remove('hidden');
+  setEditorHeading('edit', 'transaction');
+  deleteEntryButton.classList.remove('hidden');
   openEditor();
 }
 
@@ -432,6 +621,16 @@ function handleEditorSubmit(event) {
     submitPost('/monthly-km', {
       month: editorMonthValue.value,
       kilometers: editorKilometers.value
+    });
+    return;
+  }
+
+  if (editorType.value === 'transaction' && editorMode.value === 'create') {
+    submitPost('/transactions', {
+      date: editorDate.value,
+      kwh: editorKwh.value,
+      pricePerKwh: editorPricePerKwh.value,
+      fee: editorFee.value
     });
     return;
   }
@@ -530,15 +729,8 @@ function setupEditor() {
   editorBackdrop.addEventListener('click', closeEditor);
   editorForm.addEventListener('submit', handleEditorSubmit);
   deleteEntryButton.addEventListener('click', handleDeleteEntry);
-}
-
-function setDefaultDates() {
-  const currentDate = new Date();
-  populateMonthYearSelectors();
-  yearSelect.value = String(currentDate.getFullYear());
-  monthSelect.value = String(currentDate.getMonth() + 1).padStart(2, '0');
-  monthInput.value = getSelectedMonthValue();
-  transactionForm.elements.date.valueAsDate = currentDate;
+  editorMonthSelect.addEventListener('change', syncEditorMonthValue);
+  editorYearSelect.addEventListener('change', syncEditorMonthValue);
 }
 
 function init() {
@@ -547,22 +739,36 @@ function init() {
   setupSettings();
   setupEditor();
   registerServiceWorker();
-  setDefaultDates();
+  populateMonthYearSelectors(editorMonthSelect, editorYearSelect);
+  renderFilters();
   renderMonthlyKmTable();
   renderTransactionsTable();
   renderCharts();
+  applyUltrawideMode();
 
-  monthSelect.addEventListener('change', () => {
-    monthInput.value = getSelectedMonthValue();
+  monthlyKmFilter.addEventListener('change', () => {
+    state.filters.monthlyKmYear = monthlyKmFilter.value;
+    renderMonthlyKmTable();
   });
 
-  yearSelect.addEventListener('change', () => {
-    monthInput.value = getSelectedMonthValue();
+  transactionsFilter.addEventListener('change', () => {
+    state.filters.transactionsMonth = transactionsFilter.value;
+    renderTransactionsTable();
   });
 
-  monthlyKmForm.addEventListener('submit', () => {
-    monthInput.value = getSelectedMonthValue();
+  ultrawideButton.addEventListener('click', () => {
+    if (window.innerWidth < 1600) {
+      return;
+    }
+
+    state.ultrawideEnabled = !state.ultrawideEnabled;
+    window.localStorage.setItem('ladeschweinle-ultrawide', String(state.ultrawideEnabled));
+    applyUltrawideMode();
   });
+
+  window.addEventListener('resize', applyUltrawideMode);
+  addMonthlyKmButton.addEventListener('click', openCreateMonthlyEditor);
+  addTransactionButton.addEventListener('click', openCreateTransactionEditor);
 
   jsonImportForm.addEventListener('submit', handleJsonImport);
   csvImportForm.addEventListener('submit', handleCsvImport);
