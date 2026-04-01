@@ -1,4 +1,4 @@
-const STATIC_CACHE = 'ladesaeule-static-v1';
+const STATIC_CACHE = 'ladeschweinle-static-v1';
 
 const APP_SHELL = [
   '/',
@@ -6,9 +6,9 @@ const APP_SHELL = [
   '/app.js',
   '/manifest.json',
   '/assets/applogo_ladesau.png',
-  '/icons/icon.svg',
-  '/icons/maskable-icon.svg',
-  '/icons/apple-touch-icon.svg',
+  '/icons/app-icon-192.png',
+  '/icons/app-icon-512.png',
+  '/icons/apple-touch-icon.png',
   '/vendor/chart/chart.umd.js'
 ];
 

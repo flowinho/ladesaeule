@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  ladesaeule:
+  ladeschweinle:
     build: .
     ports:
       - "1337:1337"

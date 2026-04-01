@@ -145,7 +145,7 @@ app.post('/transactions/:id/delete', (req, res) => {
 });
 
 app.get('/export/all.json', (req, res) => {
-  res.setHeader('Content-Disposition', 'attachment; filename="ladesaeule-export.json"');
+  res.setHeader('Content-Disposition', 'attachment; filename="ladeschweinle-export.json"');
   res.json({
     version: 1,
     exportedAt: new Date().toISOString(),

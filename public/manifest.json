@@ -1,6 +1,6 @@
 {
-  "name": "Ladesaeule",
-  "short_name": "Ladesaeule",
+  "name": "Ladeschweinle",
+  "short_name": "Ladeschweinle",
   "description": "PWA fuer Fahrleistung und Ladevorgaenge.",
   "start_url": "/",
   "display": "standalone",
@@ -9,14 +9,19 @@
   "lang": "de-DE",
   "icons": [
     {
-      "src": "/icons/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
+      "src": "/icons/app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
     },
     {
-      "src": "/icons/maskable-icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/icons/app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ]

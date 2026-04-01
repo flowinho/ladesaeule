@@ -1,6 +1,6 @@
-# Ladesaeule
+# Ladeschweinle
 
-![Ladesäule App-Logo](public/assets/applogo_ladesau.png)
+![Ladeschweinle App-Logo](public/assets/applogo_ladesau.png)
 
 Schlichte Progressive Web App fuer einen Raspberry Pi mit Raspberry Pi OS. Die Anwendung erfasst monatliche Fahrleistung und einzelne Ladevorgaenge, speichert alles in JSON-Dateien und nutzt eine reine Weboberflaeche ohne separate API.
 
@@ -45,8 +45,8 @@ Die App ist danach lokal unter `http://localhost:1337` erreichbar.
 ### Mit Docker
 
 ```bash
-docker build -t ladesaeule .
-docker run -d -p 1337:1337 -v "$(pwd)/data:/app/data" --name ladesaeule ladesaeule
+docker build -t ladeschweinle .
+docker run -d -p 1337:1337 -v "$(pwd)/data:/app/data" --name ladeschweinle ladeschweinle
 ```
 
 ### Mit Docker Compose
@@ -54,6 +54,25 @@ docker run -d -p 1337:1337 -v "$(pwd)/data:/app/data" --name ladesaeule ladesaeu
 ```bash
 docker compose up -d --build
 ```
+
+## Update-Prozess
+
+Wenn die Anwendung bereits auf dem Raspberry Pi ausgecheckt ist und per Docker Compose läuft:
+
+```bash
+cd /pfad/zu/ladeschweinle
+git pull
+docker compose up -d --build
+```
+
+Optional zur Kontrolle:
+
+```bash
+docker compose ps
+docker compose logs --tail=100
+```
+
+Die vorhandenen Daten in `data/monthly-km.json` und `data/transactions.json` bleiben dabei erhalten.
 
 ## Datenablage
 
