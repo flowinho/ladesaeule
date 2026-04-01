@@ -753,6 +753,25 @@ function applyUltrawideMode() {
   }
 }
 
+function setMonthlyEditorActive(active) {
+  monthlyEditorFields.classList.toggle('hidden', !active);
+  editorMonthSelect.disabled = !active;
+  editorYearSelect.disabled = !active;
+  editorKilometers.disabled = !active;
+  editorKilometers.required = active;
+}
+
+function setTransactionEditorActive(active) {
+  transactionEditorFields.classList.toggle('hidden', !active);
+  editorDate.disabled = !active;
+  editorKwh.disabled = !active;
+  editorPricePerKwh.disabled = !active;
+  editorFee.disabled = !active;
+  editorDate.required = active;
+  editorKwh.required = active;
+  editorPricePerKwh.required = active;
+}
+
 function setEditorHeading(mode, type) {
   const labels = {
     'monthly-km': mode === 'create' ? 'Monat hinzufügen' : 'Monat bearbeiten',
@@ -780,8 +799,8 @@ function openCreateMonthlyEditor() {
   editorMode.value = 'create';
   editorId.value = '';
   editorKilometers.value = '';
-  monthlyEditorFields.classList.remove('hidden');
-  transactionEditorFields.classList.add('hidden');
+  setMonthlyEditorActive(true);
+  setTransactionEditorActive(false);
   setEditorHeading('create', 'monthly-km');
   populateEditorMonth(`${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`);
   deleteEntryButton.classList.add('hidden');
@@ -794,8 +813,8 @@ function openMonthlyEditor(month, kilometers) {
   editorId.value = '';
   populateEditorMonth(month);
   editorKilometers.value = kilometers;
-  monthlyEditorFields.classList.remove('hidden');
-  transactionEditorFields.classList.add('hidden');
+  setMonthlyEditorActive(true);
+  setTransactionEditorActive(false);
   setEditorHeading('edit', 'monthly-km');
   deleteEntryButton.classList.remove('hidden');
   openEditor();
@@ -811,8 +830,8 @@ function openCreateTransactionEditor() {
   editorKwh.value = '';
   editorPricePerKwh.value = '';
   editorFee.value = '';
-  monthlyEditorFields.classList.add('hidden');
-  transactionEditorFields.classList.remove('hidden');
+  setMonthlyEditorActive(false);
+  setTransactionEditorActive(true);
   setEditorHeading('create', 'transaction');
   deleteEntryButton.classList.add('hidden');
   openEditor();
@@ -831,8 +850,8 @@ function openTransactionEditor(transactionId) {
   editorKwh.value = transaction.kwh;
   editorPricePerKwh.value = transaction.pricePerKwh;
   editorFee.value = transaction.fee;
-  monthlyEditorFields.classList.add('hidden');
-  transactionEditorFields.classList.remove('hidden');
+  setMonthlyEditorActive(false);
+  setTransactionEditorActive(true);
   setEditorHeading('edit', 'transaction');
   deleteEntryButton.classList.remove('hidden');
   openEditor();
