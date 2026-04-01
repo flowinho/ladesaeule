@@ -4,10 +4,10 @@ services:
   ladesaeule:
     build: .
     ports:
-      - "3000:3000"
+      - "1337:1337"
     environment:
       HOST: 0.0.0.0
-      PORT: 3000
+      PORT: 1337
     volumes:
       - ./data:/app/data
     restart: unless-stopped

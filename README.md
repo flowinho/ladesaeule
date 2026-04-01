@@ -36,7 +36,7 @@ npm install
 npm start
 ```
 
-Die App ist danach lokal unter `http://localhost:3000` erreichbar.
+Die App ist danach lokal unter `http://localhost:1337` erreichbar.
 
 ## Docker-Start
 
@@ -44,7 +44,7 @@ Die App ist danach lokal unter `http://localhost:3000` erreichbar.
 
 ```bash
 docker build -t ladesaeule .
-docker run -d -p 3000:3000 -v "$(pwd)/data:/app/data" --name ladesaeule ladesaeule
+docker run -d -p 1337:1337 -v "$(pwd)/data:/app/data" --name ladesaeule ladesaeule
 ```
 
 ### Mit Docker Compose
@@ -64,10 +64,10 @@ Fehlende Dateien und Verzeichnisse werden beim Start automatisch erzeugt.
 
 ## Im lokalen Netzwerk aufrufen
 
-Der Server lauscht auf `0.0.0.0:3000`. Auf einem Raspberry Pi ist die App damit von anderen Geraeten im selben Netzwerk ueber die IP des Pi erreichbar, zum Beispiel:
+Der Server lauscht auf `0.0.0.0:1337`. Auf einem Raspberry Pi ist die App damit von anderen Geraeten im selben Netzwerk ueber die IP des Pi erreichbar, zum Beispiel:
 
 ```text
-http://192.168.178.42:3000
+http://192.168.178.42:1337
 ```
 
 Die IP-Adresse des Raspberry Pi laesst sich zum Beispiel mit `hostname -I` ermitteln.

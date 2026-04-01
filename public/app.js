@@ -188,9 +188,9 @@ function renderMonthlyKmTable() {
 
   monthlyKmTableBody.innerHTML = entries.map(([month, kilometers]) => `
     <tr>
-      <td>${formatMonthLong(month)}</td>
-      <td>${decimalFormatter.format(kilometers)} km</td>
-      <td>
+      <td data-label="Monat">${formatMonthLong(month)}</td>
+      <td data-label="Kilometer">${decimalFormatter.format(kilometers)} km</td>
+      <td data-label="Aktion">
         <button class="icon-button table-icon-button" type="button" aria-label="Monatseintrag bearbeiten" data-entry-type="monthly-km" data-month="${month}" data-kilometers="${kilometers}">
           <svg class="icon"><use href="/icons/material-symbols.svg#icon-edit"></use></svg>
         </button>
@@ -207,12 +207,12 @@ function renderTransactionsTable() {
 
   transactionsTableBody.innerHTML = state.transactions.map((transaction) => `
     <tr>
-      <td>${formatDate(transaction.date)}</td>
-      <td>${decimalFormatter.format(transaction.kwh)}</td>
-      <td>${currencyFormatter.format(transaction.pricePerKwh)}</td>
-      <td>${currencyFormatter.format(transaction.fee)}</td>
-      <td>${currencyFormatter.format(transaction.totalCost)}</td>
-      <td>
+      <td data-label="Datum">${formatDate(transaction.date)}</td>
+      <td data-label="kWh">${decimalFormatter.format(transaction.kwh)}</td>
+      <td data-label="Preis / kWh">${currencyFormatter.format(transaction.pricePerKwh)}</td>
+      <td data-label="Gebühr">${currencyFormatter.format(transaction.fee)}</td>
+      <td data-label="Gesamt">${currencyFormatter.format(transaction.totalCost)}</td>
+      <td data-label="Aktion">
         <button class="icon-button table-icon-button" type="button" aria-label="Ladevorgang bearbeiten" data-entry-type="transaction" data-id="${transaction.id}">
           <svg class="icon"><use href="/icons/material-symbols.svg#icon-edit"></use></svg>
         </button>

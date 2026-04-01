@@ -22,7 +22,7 @@ const {
 } = require('./lib/importers');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 1337;
 const HOST = process.env.HOST || '0.0.0.0';
 
 ensureDataFiles();
