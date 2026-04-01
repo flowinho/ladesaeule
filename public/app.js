@@ -67,6 +67,7 @@ const themeOptions = document.getElementById('themeOptions');
 const settingsPanel = document.getElementById('settingsPanel');
 const closeSettingsButton = document.getElementById('closeSettingsButton');
 const settingsBackdrop = document.getElementById('settingsBackdrop');
+const dangerActionButtons = document.querySelectorAll('[data-danger-action]');
 const jsonImportForm = document.getElementById('jsonImportForm');
 const csvImportForm = document.getElementById('csvImportForm');
 const jsonImportInput = document.getElementById('jsonImportInput');
@@ -94,8 +95,16 @@ const editorFee = document.getElementById('editorFee');
 const contentElement = document.querySelector('.content');
 const editorTitle = document.getElementById('editorTitle');
 const themeMetaTag = document.querySelector('meta[name="theme-color"]');
+const confirmPanel = document.getElementById('confirmPanel');
+const confirmBackdrop = document.getElementById('confirmBackdrop');
+const closeConfirmButton = document.getElementById('closeConfirmButton');
+const cancelConfirmButton = document.getElementById('cancelConfirmButton');
+const confirmActionButton = document.getElementById('confirmActionButton');
+const confirmTitle = document.getElementById('confirmTitle');
+const confirmMessage = document.getElementById('confirmMessage');
 
 state.theme = window.localStorage.getItem('ladeschweinle-theme') || 'things3';
+state.pendingDangerAction = null;
 
 function openThemeDialog() {
   themePanel.classList.add('open');
@@ -232,6 +241,20 @@ function closeEditor() {
   editorPanel.setAttribute('aria-hidden', 'true');
 }
 
+function openConfirmDialog(title, message, action) {
+  state.pendingDangerAction = action;
+  confirmTitle.textContent = title;
+  confirmMessage.textContent = message;
+  confirmPanel.classList.add('open');
+  confirmPanel.setAttribute('aria-hidden', 'false');
+}
+
+function closeConfirmDialog() {
+  state.pendingDangerAction = null;
+  confirmPanel.classList.remove('open');
+  confirmPanel.setAttribute('aria-hidden', 'true');
+}
+
 function submitPost(url, fields) {
   const form = document.createElement('form');
   form.method = 'post';
@@ -288,11 +311,12 @@ function buildMonthlyStats(monthsBack) {
   state.transactions.forEach((transaction) => {
     const month = String(transaction.date).slice(0, 7);
     if (!transactionTotals[month]) {
-      transactionTotals[month] = { kwh: 0, cost: 0 };
+      transactionTotals[month] = { kwh: 0, cost: 0, stops: 0 };
     }
 
     transactionTotals[month].kwh += Number(transaction.kwh) || 0;
     transactionTotals[month].cost += Number(transaction.totalCost) || 0;
+    transactionTotals[month].stops += 1;
   });
 
   return {
@@ -300,6 +324,7 @@ function buildMonthlyStats(monthsBack) {
     energyPerMonth: months.map((month) => Number((transactionTotals[month]?.kwh || 0).toFixed(2))),
     kilometersPerMonth: months.map((month) => Number((Number(state.monthlyKm[month]) || 0).toFixed(2))),
     chargingCostPerMonth: months.map((month) => Number((transactionTotals[month]?.cost || 0).toFixed(2))),
+    chargingStopsPerMonth: months.map((month) => transactionTotals[month]?.stops || 0),
     avgCostPerKwhPerMonth: months.map((month) => {
       const energy = transactionTotals[month]?.kwh || 0;
       const cost = transactionTotals[month]?.cost || 0;
@@ -342,11 +367,12 @@ function buildSummaryStats() {
     const month = String(transaction.date).slice(0, 7);
 
     if (!monthlyTransactionTotals[month]) {
-      monthlyTransactionTotals[month] = { kwh: 0, cost: 0 };
+      monthlyTransactionTotals[month] = { kwh: 0, cost: 0, stops: 0 };
     }
 
     monthlyTransactionTotals[month].kwh += Number(transaction.kwh) || 0;
     monthlyTransactionTotals[month].cost += Number(transaction.totalCost) || 0;
+    monthlyTransactionTotals[month].stops += 1;
   });
 
   const kilometerMonths = Object.keys(state.monthlyKm);
@@ -355,6 +381,7 @@ function buildSummaryStats() {
   const currentKilometers = Number(state.monthlyKm[currentMonth]) || 0;
   const currentEnergy = monthlyTransactionTotals[currentMonth]?.kwh || 0;
   const currentCost = monthlyTransactionTotals[currentMonth]?.cost || 0;
+  const currentStops = monthlyTransactionTotals[currentMonth]?.stops || 0;
   const currentCostPer100Km = currentKilometers > 0 ? Number(((currentCost / currentKilometers) * 100).toFixed(2)) : null;
   const currentAvgCostPerKwh = currentEnergy > 0 ? Number((currentCost / currentEnergy).toFixed(3)) : null;
   const currentConsumption = currentKilometers > 0 ? Number(((currentEnergy / currentKilometers) * 100).toFixed(2)) : null;
@@ -407,6 +434,14 @@ function buildSummaryStats() {
       })),
       current: currentAvgCostPerKwh,
       formatter: (value) => `${currencyFormatter.format(value)} / kWh`
+    },
+    {
+      key: 'charging-stops',
+      label: 'Ladestops',
+      icon: 'icon-charging',
+      average: averageValues(energyMonths.map((month) => monthlyTransactionTotals[month]?.stops || 0)),
+      current: currentStops,
+      formatter: (value) => `${decimalFormatter.format(value)} Stops`
     },
     {
       key: 'consumption',
@@ -588,14 +623,17 @@ function renderCharts() {
   };
 
   makeChart('energyChart', {
-    type: 'bar',
+    type: 'line',
     data: {
       labels,
       datasets: [{
         data: stats.energyPerMonth,
-        backgroundColor: toAlphaColor(getThemeColorValue('--chart-energy'), 0.8),
-        borderRadius: 12,
-        borderSkipped: false
+        borderColor: getThemeColorValue('--chart-energy'),
+        backgroundColor: toAlphaColor(getThemeColorValue('--chart-energy'), 0.18),
+        fill: true,
+        tension: 0.35,
+        pointRadius: 4,
+        pointHoverRadius: 5
       }]
     },
     options: commonOptions
@@ -650,14 +688,17 @@ function renderCharts() {
   });
 
   makeChart('absoluteCostChart', {
-    type: 'bar',
+    type: 'line',
     data: {
       labels,
       datasets: [{
         data: stats.chargingCostPerMonth,
-        backgroundColor: toAlphaColor(getThemeColorValue('--chart-absolute-cost'), 0.8),
-        borderRadius: 12,
-        borderSkipped: false
+        borderColor: getThemeColorValue('--chart-absolute-cost'),
+        backgroundColor: toAlphaColor(getThemeColorValue('--chart-absolute-cost'), 0.18),
+        fill: true,
+        tension: 0.32,
+        pointRadius: 4,
+        pointHoverRadius: 5
       }]
     },
     options: {
@@ -730,6 +771,35 @@ function renderCharts() {
             label(context) {
               const value = context.raw;
               return value === null ? 'Keine Kilometerdaten' : `${decimalFormatter.format(value)} kWh / 100 km`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  makeChart('chargingStopsChart', {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: stats.chargingStopsPerMonth,
+        borderColor: getThemeColorValue('--primary'),
+        backgroundColor: toAlphaColor(getThemeColorValue('--primary'), 0.18),
+        fill: true,
+        tension: 0.3,
+        pointRadius: 4,
+        pointHoverRadius: 5
+      }]
+    },
+    options: {
+      ...commonOptions,
+      plugins: {
+        ...commonOptions.plugins,
+        tooltip: {
+          callbacks: {
+            label(context) {
+              return `${decimalFormatter.format(context.raw)} Stops`;
             }
           }
         }
@@ -982,6 +1052,16 @@ function setupSettings() {
   settingsButton.addEventListener('click', openSettings);
   closeSettingsButton.addEventListener('click', closeSettings);
   settingsBackdrop.addEventListener('click', closeSettings);
+
+  dangerActionButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      openConfirmDialog(
+        button.dataset.dangerTitle || 'Aktion bestätigen',
+        button.dataset.dangerMessage || 'Möchtest du diese Aktion wirklich ausführen?',
+        button.dataset.dangerAction || ''
+      );
+    });
+  });
 }
 
 function setupEditor() {
@@ -993,12 +1073,27 @@ function setupEditor() {
   editorYearSelect.addEventListener('change', syncEditorMonthValue);
 }
 
+function setupConfirmDialog() {
+  closeConfirmButton.addEventListener('click', closeConfirmDialog);
+  cancelConfirmButton.addEventListener('click', closeConfirmDialog);
+  confirmBackdrop.addEventListener('click', closeConfirmDialog);
+  confirmActionButton.addEventListener('click', () => {
+    if (!state.pendingDangerAction) {
+      closeConfirmDialog();
+      return;
+    }
+
+    submitPost(state.pendingDangerAction, {});
+  });
+}
+
 function init() {
   setupThemes();
   setupRangeControls();
   setupInstallPrompt();
   setupSettings();
   setupEditor();
+  setupConfirmDialog();
   registerServiceWorker();
   populateMonthYearSelectors(editorMonthSelect, editorYearSelect);
   renderFilters();
@@ -1042,6 +1137,7 @@ function init() {
       closeThemeDialog();
       closeSettings();
       closeEditor();
+      closeConfirmDialog();
     }
   });
 

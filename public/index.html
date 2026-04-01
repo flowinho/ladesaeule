@@ -110,6 +110,14 @@
               </div>
               <canvas id="consumptionPer100KmChart"></canvas>
             </article>
+
+            <article class="chart-card">
+              <div class="chart-header">
+                <h3><svg class="icon"><use href="/icons/material-symbols.svg#icon-charging"></use></svg><span>Ladestops</span></h3>
+                <span class="chart-unit">Anzahl pro Monat</span>
+              </div>
+              <canvas id="chargingStopsChart"></canvas>
+            </article>
           </div>
         </section>
 
@@ -276,6 +284,24 @@
                 </div>
               </form>
             </section>
+
+            <section class="settings-card danger-zone-card">
+              <div class="settings-card-header">
+                <h3><svg class="icon"><use href="/icons/material-symbols.svg#icon-delete"></use></svg><span>Danger Zone</span></h3>
+                <p class="muted">Diese Aktionen können nicht rückgängig gemacht werden.</p>
+              </div>
+              <div class="settings-actions">
+                <button class="ghost-button danger" type="button" data-danger-action="/danger/delete-monthly-km" data-danger-title="Kilometerstände löschen" data-danger-message="Möchtest du wirklich alle gespeicherten Kilometerstände dauerhaft löschen?">
+                  Alle Kilometerstände löschen
+                </button>
+                <button class="ghost-button danger" type="button" data-danger-action="/danger/delete-transactions" data-danger-title="Ladetransaktionen löschen" data-danger-message="Möchtest du wirklich alle gespeicherten Ladetransaktionen dauerhaft löschen?">
+                  Alle Ladetransaktionen löschen
+                </button>
+                <button class="ghost-button danger" type="button" data-danger-action="/danger/delete-all-data" data-danger-title="Alle Daten löschen" data-danger-message="Möchtest du wirklich sämtliche gespeicherten Daten dauerhaft löschen?">
+                  Alle Daten löschen
+                </button>
+              </div>
+            </section>
           </div>
         </section>
       </aside>
@@ -349,6 +375,33 @@
               </button>
             </div>
           </form>
+        </section>
+      </aside>
+
+      <aside id="confirmPanel" class="settings-panel" aria-hidden="true">
+        <div id="confirmBackdrop" class="settings-backdrop"></div>
+        <section class="settings-drawer confirm-drawer card" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+          <div class="settings-header">
+            <div>
+              <p class="eyebrow">Bestätigung</p>
+              <h2 id="confirmTitle">Aktion bestätigen</h2>
+            </div>
+            <button id="closeConfirmButton" class="icon-button" type="button" aria-label="Bestätigungsdialog schließen">
+              <svg class="icon"><use href="/icons/material-symbols.svg#icon-close"></use></svg>
+            </button>
+          </div>
+          <div class="settings-content">
+            <section class="settings-card danger-zone-card">
+              <p id="confirmMessage" class="muted">Diese Aktion erfordert eine Bestätigung.</p>
+              <div class="editor-actions">
+                <button id="cancelConfirmButton" class="ghost-button" type="button">Abbrechen</button>
+                <button id="confirmActionButton" class="ghost-button danger" type="button">
+                  <svg class="icon"><use href="/icons/material-symbols.svg#icon-delete"></use></svg>
+                  <span>Endgültig löschen</span>
+                </button>
+              </div>
+            </section>
+          </div>
         </section>
       </aside>
 

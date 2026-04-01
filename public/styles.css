@@ -852,6 +852,15 @@ select {
   background: linear-gradient(180deg, var(--surface-glass), var(--surface-elevated));
 }
 
+.danger-zone-card {
+  border-color: color-mix(in srgb, var(--error) 30%, var(--border));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--error) 5%, var(--surface-glass)),
+    color-mix(in srgb, var(--error) 3%, var(--surface-elevated))
+  );
+}
+
 .settings-card-header {
   margin-bottom: 0.9rem;
 }
@@ -887,6 +896,10 @@ select {
 
 .theme-drawer {
   width: min(92vw, 420px);
+}
+
+.confirm-drawer {
+  width: min(92vw, 440px);
 }
 
 .theme-content {

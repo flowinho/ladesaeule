@@ -145,6 +145,34 @@ app.post('/transactions/:id/delete', (req, res) => {
   }
 });
 
+app.post('/danger/delete-monthly-km', (req, res) => {
+  try {
+    writeMonthlyKilometers({});
+    redirectWithMessage(res, 'notice', 'Alle Kilometerstände wurden gelöscht.');
+  } catch (error) {
+    redirectWithMessage(res, 'error', error.message || 'Löschen fehlgeschlagen.');
+  }
+});
+
+app.post('/danger/delete-transactions', (req, res) => {
+  try {
+    writeTransactions([]);
+    redirectWithMessage(res, 'notice', 'Alle Ladetransaktionen wurden gelöscht.');
+  } catch (error) {
+    redirectWithMessage(res, 'error', error.message || 'Löschen fehlgeschlagen.');
+  }
+});
+
+app.post('/danger/delete-all-data', (req, res) => {
+  try {
+    writeMonthlyKilometers({});
+    writeTransactions([]);
+    redirectWithMessage(res, 'notice', 'Alle Daten wurden gelöscht.');
+  } catch (error) {
+    redirectWithMessage(res, 'error', error.message || 'Löschen fehlgeschlagen.');
+  }
+});
+
 app.get('/export/all.json', (req, res) => {
   res.setHeader('Content-Disposition', 'attachment; filename="ladeschweinle-export.json"');
   res.json({
