@@ -120,3 +120,18 @@ Die IP-Adresse des Raspberry Pi laesst sich zum Beispiel mit `hostname -I` ermit
 - Bearbeiten einzelner Ladevorgaenge
 - Import bestehender Abrechnungsdaten
 - Separates Diagramm fuer monatliche Gesamtkosten
+
+## GitHub Actions: PWA-Demo Deployment
+
+Ein Deployment über GitHub Actions ist **möglich**, aber mit einer wichtigen Einschränkung:
+
+- Die Anwendung ist technisch eine Node.js-/Express-App mit serverseitigen POST-Routen und Dateispeicherung in `data/`.
+- GitHub Pages kann nur statische Dateien ausliefern.
+
+Daher deployt der Workflow `.github/workflows/deploy-pages.yml` eine **statische Demo** der PWA auf GitHub Pages. Funktionen mit Server-Schreibzugriff (z. B. Import, Speichern, Löschen, Export-Endpunkte) sind dort nicht nutzbar.
+
+### Aktivierung
+
+1. In GitHub unter **Settings → Pages** als Source **GitHub Actions** auswählen.
+2. Den Workflow **Deploy PWA Demo to GitHub Pages** starten (manuell oder per Push auf `main`).
+3. Die erzeugte URL ist im Deploy-Job unter `page_url` sichtbar.
