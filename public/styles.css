@@ -1031,6 +1031,10 @@ select {
 }
 
 @media (max-width: 640px) {
+  html {
+    font-size: 90%;
+  }
+
   .hero,
   .content {
     width: min(100% - 1rem, var(--content-width));
