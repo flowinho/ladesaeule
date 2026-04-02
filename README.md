@@ -6,8 +6,6 @@ Dein persönliches Lade- und Fahrtenbuch fürs E‑Auto: **Ladeschweinle** ist e
 
 ## Was macht die App genau?
 
-Nach dem Scan des Repos lässt sich die App so zusammenfassen:
-
 - **Erfasst Monatswerte** (`YYYY-MM`) mit gefahrenen Kilometern und optionalem Kilometerstand (Odometer).
 - **Erfasst Ladevorgänge** mit Datum, kWh, Preis pro kWh und optionaler Zusatzgebühr.
 - **Berechnet automatisch** die Gesamtkosten pro Ladevorgang (`kWh * Preis + Gebühr`).
