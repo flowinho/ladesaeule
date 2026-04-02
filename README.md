@@ -1,32 +1,49 @@
 # Ladeschweinle
 
-![Ladeschweinle App-Logo](public/assets/applogo_ladesau.png)
+<img src="public/assets/applogo_ladesau.png" alt="Ladeschweinle App-Logo" width="180" />
 
-Schlichte Progressive Web App fuer einen Raspberry Pi mit Raspberry Pi OS. Die Anwendung erfasst monatliche Fahrleistung und einzelne Ladevorgaenge, speichert alles in JSON-Dateien und nutzt eine reine Weboberflaeche ohne separate API.
+Dein persönliches Lade- und Fahrtenbuch fürs E‑Auto: **Ladeschweinle** ist eine schlanke Progressive Web App (PWA), die auf einem Raspberry Pi oder jedem kleinen Server laufen kann. Die App hilft dir, monatliche Kilometer, einzelne Ladevorgänge und Ladekosten sauber zu dokumentieren – ohne Cloud-Zwang und ohne Datenbank.
 
-## Funktionen
+## Was macht die App genau?
 
-- Monatliche Kilometerwerte pro `YYYY-MM` anlegen und bearbeiten
-- Ladevorgaenge mit Datum, kWh, Preis pro kWh und optionaler Gebuehr erfassen
-- Automatische Berechnung der Gesamtkosten je Ladevorgang
-- Dashboard mit drei Diagrammen fuer 3, 6 oder 12 Monate
-- Installierbare PWA mit Service Worker und statischem Asset-Caching
-- JSON-Dateien statt Datenbank
-- Einstellungen-Menue fuer JSON-Import, JSON-Export und CSV-Tarifimporte
-- CSV-Import fuer `Mercedes Benz Public Charge`
-- CSV-Import fuer `Legacy Ladeschweinle Tarif`
+Nach dem Scan des Repos lässt sich die App so zusammenfassen:
+
+- **Erfasst Monatswerte** (`YYYY-MM`) mit gefahrenen Kilometern und optionalem Kilometerstand (Odometer).
+- **Erfasst Ladevorgänge** mit Datum, kWh, Preis pro kWh und optionaler Zusatzgebühr.
+- **Berechnet automatisch** die Gesamtkosten pro Ladevorgang (`kWh * Preis + Gebühr`).
+- **Zeigt Auswertungen im Dashboard** als Diagramme für 3, 6 oder 12 Monate (Energie, Kilometer, Kosten, Kosten/100 km).
+- **Bietet Filter und Bearbeitung** für gespeicherte Einträge (anlegen, aktualisieren, löschen).
+- **Import/Export inklusive**:
+  - JSON-Import und JSON-Export (komplett oder getrennt)
+  - CSV-Import für **Mercedes Benz Public Charge**
+  - CSV-Import für **Legacy Ladeschweinle Tarif** (inkl. Monatskilometer)
+  - Dublettenprüfung bei importierten Ladevorgängen über eine Signatur.
+- **Läuft als PWA** mit Manifest + Service Worker (offline-fähige App-Shell nach erstem Laden).
+- **Speichert lokal in JSON-Dateien** unter `data/` statt in einer externen Datenbank.
+
+Kurz gesagt: Du bekommst ein lokales, datensparsames Cockpit für EV-Ladekosten und Fahrleistung.
+
+## Funktionen im Alltag
+
+- Monatskilometer einfach nachtragen
+- Lade-Sessions schnell erfassen oder korrigieren
+- Entwicklungen über mehrere Monate auf einen Blick sehen
+- Daten jederzeit sichern (Export) und wieder einspielen (Import)
+- Auf dem Smartphone wie eine App installierbar
 
 ## Architektur
 
-- `server.js`: Express-Server, statische Auslieferung und Formularaktionen
-- `lib/storage.js`: Erzeugt Datenverzeichnis und liest/schreibt JSON-Dateien
-- `lib/validation.js`: Validierung aller API-Eingaben
-- `lib/stats.js`: Monatliche Aggregationen fuer die Diagramme
-- `public/`: HTML, CSS, JavaScript, Manifest, Service Worker und Icons
-- `lib/importers.js`: CSV-Importlogik und Dublettenfilter fuer Tarifdateien
-- `data/`: Persistente JSON-Dateien fuer Kilometer und Ladevorgaenge
+- `server.js`: Express-Server, statische Auslieferung, Form-POSTs, Import/Export-Routen
+- `lib/storage.js`: Datenverzeichnis + JSON-Dateien erzeugen/lesen/schreiben
+- `lib/validation.js`: Validierung und Normalisierung aller Eingaben
+- `lib/stats.js`: Monatliche Aggregationen für Diagramme
+- `lib/importers.js`: CSV-Importlogik und Dublettenfilter
+- `public/`: Frontend (HTML/CSS/JS), Manifest, Service Worker, Icons
+- `data/`: Persistente Daten (`monthly-km.json`, `transactions.json`)
 
-## Lokaler Start
+---
+
+## Schnellstart lokal
 
 ### Voraussetzungen
 
@@ -39,9 +56,9 @@ npm install
 npm start
 ```
 
-Die App ist danach lokal unter `http://localhost:1337` erreichbar.
+Danach erreichst du die App unter `http://localhost:1337`.
 
-## Docker-Start
+## Docker
 
 ### Mit Docker
 
@@ -56,9 +73,81 @@ docker run -d -p 1337:1337 -v "$(pwd)/data:/app/data" --name ladeschweinle lades
 docker compose up -d --build
 ```
 
-## Update-Prozess
+---
 
-Wenn die Anwendung bereits auf dem Raspberry Pi ausgecheckt ist und per Docker Compose läuft:
+## Mini-Tutorial: Hosting auf einem Raspberry Pi mit Docker Compose
+
+Diese Anleitung ist für Raspberry Pi OS (Bookworm/Bullseye) gedacht.
+
+### 1) Raspberry Pi vorbereiten
+
+System aktualisieren:
+
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+Docker + Compose Plugin installieren (über apt):
+
+```bash
+sudo apt install -y docker.io docker-compose-plugin git
+```
+
+Deinen Benutzer zur Docker-Gruppe hinzufügen:
+
+```bash
+sudo usermod -aG docker $USER
+```
+
+Dann **einmal ab- und wieder anmelden** (oder neu starten), damit die Gruppenänderung greift.
+
+### 2) Projekt auf den Pi holen
+
+```bash
+git clone <DEIN-REPO-URL> ladeschweinle
+cd ladeschweinle
+mkdir -p data
+```
+
+### 3) App mit Compose starten
+
+```bash
+docker compose up -d --build
+```
+
+Status prüfen:
+
+```bash
+docker compose ps
+docker compose logs --tail=100
+```
+
+### 4) Im Netzwerk öffnen
+
+IP-Adresse des Pi herausfinden:
+
+```bash
+hostname -I
+```
+
+Dann im Browser öffnen:
+
+```text
+http://<PI-IP>:1337
+```
+
+Beispiel: `http://192.168.178.42:1337`
+
+### 5) Datenpersistenz verstehen
+
+Die Compose-Datei mountet `./data` nach `/app/data` im Container. Dadurch bleiben deine Daten bei Updates/Neustarts erhalten.
+
+Wichtige Dateien:
+
+- `data/monthly-km.json`
+- `data/transactions.json`
+
+### 6) Update-Workflow
 
 ```bash
 cd /pfad/zu/ladeschweinle
@@ -66,57 +155,36 @@ git pull
 docker compose up -d --build
 ```
 
-Optional zur Kontrolle:
+Optional aufräumen:
 
 ```bash
-docker compose ps
-docker compose logs --tail=100
+docker image prune -f
 ```
 
-Die vorhandenen Daten in `data/monthly-km.json` und `data/transactions.json` bleiben dabei erhalten.
+### 7) Optional: Autostart nach Reboot
 
-## Datenablage
+In der Compose-Datei ist `restart: unless-stopped` gesetzt. Damit startet der Container nach einem Pi-Neustart automatisch wieder.
 
-Die Daten liegen im Projektordner unter:
-
-- `data/monthly-km.json`
-- `data/transactions.json`
-
-Fehlende Dateien und Verzeichnisse werden beim Start automatisch erzeugt.
-
-## Im lokalen Netzwerk aufrufen
-
-Der Server lauscht auf `0.0.0.0:1337`. Auf einem Raspberry Pi ist die App damit von anderen Geraeten im selben Netzwerk ueber die IP des Pi erreichbar.
-
-Die IP-Adresse des Raspberry Pi laesst sich zum Beispiel mit `hostname -I` ermitteln.
-
-## Webaktionen
-
-- Formular fuer Monatskilometer
-- Formular fuer Ladevorgaenge
-- Browserbasierter JSON-Import
-- Browserbasierter CSV-Import
-- Direkte JSON-Downloads fuer Exporte
-
-## PWA-Hinweise
-
-- `manifest.json` definiert App-Name, Farbe und Icons
-- `sw.js` cached App-Shell und bereits geladene GET-Anfragen
-- Nach dem ersten Laden ist die Oberflaeche offline weiterhin verfuegbar
+---
 
 ## Import und Export
 
-- Im Einstellungen-Menue lassen sich alle Daten als JSON herunterladen
-- JSON-Import akzeptiert entweder einen Gesamtexport oder einzelne Datenbestaende
-- CSV-Import ist aktuell fuer `Mercedes Benz Public Charge` vorbereitet
-- CSV-Import ist aktuell fuer `Mercedes Benz Public Charge` und `Legacy Ladeschweinle Tarif` vorbereitet
-- Beim CSV-Import werden nur Datum, Energie, Preis pro kWh, Gebuehr und Gesamtkosten uebernommen
-- Der Legacy-Ladeschweinle-Import uebernimmt zusaetzlich Monatskilometer aus den `mileage`-Zeilen
-- Bereits vorhandene Ladevorgaenge werden beim CSV-Import ueber eine inhaltliche Signatur gegen Dubletten geprueft
+- Im Einstellungen-Menü lassen sich alle Daten als JSON herunterladen
+- JSON-Import akzeptiert Gesamtexporte oder einzelne Datenbestände
+- CSV-Import unterstützt aktuell:
+  - `Mercedes Benz Public Charge`
+  - `Legacy Ladeschweinle Tarif`
+- Beim CSV-Import werden passende Felder normalisiert, ungültige Zeilen verworfen und Dubletten gefiltert
 
-## Ideen fuer spaetere Erweiterungen
+## PWA-Hinweise
 
-- CSV-Export fuer Monats- und Ladedaten
-- Bearbeiten einzelner Ladevorgaenge
-- Import bestehender Abrechnungsdaten
-- Separates Diagramm fuer monatliche Gesamtkosten
+- `manifest.json` definiert Name, Farben und Icons
+- `sw.js` cached App-Shell und bereits geladene GET-Anfragen
+- Nach dem ersten Laden bleibt die Oberfläche im Kern offline nutzbar
+
+## Ideen für spätere Erweiterungen
+
+- CSV-Export für Monats- und Ladedaten
+- Feineres Bearbeiten einzelner Sessions (z. B. Ladepunkt, Notizen)
+- Weitere Importprofile für andere Anbieter
+- Zusatzdiagramme (z. B. Monatssumme Kosten, Preis/kWh-Trend)
