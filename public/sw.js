@@ -1,4 +1,4 @@
-const STATIC_CACHE = 'ladeschweinle-static-v3';
+const STATIC_CACHE = 'ladeschweinle-static-v4';
 
 const APP_SHELL = [
   '/styles.css',
